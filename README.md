@@ -7,8 +7,11 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 ### 🎯 **Core Functionality**
 - **Drag & Drop JSON Import** - Simply drop your JSON file to get started
 - **Visual Form Builder** - Organize questions with intuitive drag & drop
+- **Live Form Preview** - See exactly how your form will look and function
+- **Interactive Testing** - Fill out the form and test all functionality
 - **Live Editing** - Click to edit questions inline
 - **Multi-page Support** - Handle complex forms with multiple pages
+- **JSON Export** - Export filled form data as structured JSON
 - **HTML Export** - Generate clean, responsive HTML forms
 
 ### 🎨 **User Experience**
@@ -66,7 +69,14 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 - **Delete questions** you don't need
 - **Switch between pages** if your form has multiple pages
 
-### 3. **Export HTML Form**
+### 3. **Preview Your Form**
+- Click "Preview" to see exactly how your form will look
+- **Test all functionality** - fill out fields, select options
+- **Validate required fields** - see real-time validation
+- **Export test data** as JSON to verify structure
+- **Multi-page navigation** works exactly like the final form
+
+### 4. **Export HTML Form**
 - Click "Export HTML" to generate your final form
 - The HTML file will be downloaded automatically
 - Open the HTML file in any browser to use your form
@@ -97,6 +107,7 @@ react-form-builder/
 │   │   ├── Header.js           # Navigation header
 │   │   ├── JsonDropZone.js     # File upload component
 │   │   ├── FormBuilder.js      # Main form builder
+│   │   ├── FormPreview.js      # Live form preview with testing
 │   │   ├── QuestionCard.js     # Individual question display
 │   │   └── QuestionEditor.js   # Question editing modal
 │   ├── utils/
