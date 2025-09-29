@@ -6,6 +6,7 @@ import {
   RotateCcw, 
   CheckCircle,
   AlertCircle,
+  X,
   Type, 
   Mail, 
   Phone, 
