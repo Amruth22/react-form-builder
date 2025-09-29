@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, Download, Eye, Settings } from 'lucide-react';
 import FormBuilder from './components/FormBuilder';
+import FormPreview from './components/FormPreview';
 import JsonDropZone from './components/JsonDropZone';
 import Header from './components/Header';
 
@@ -92,16 +93,10 @@ function App() {
         )}
 
         {currentView === 'preview' && formData && (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Form Preview</h2>
-              {/* Preview component will be implemented */}
-              <div className="text-center py-12 text-gray-500">
-                <Eye className="w-12 h-12 mx-auto mb-4" />
-                <p>Form preview coming soon...</p>
-              </div>
-            </div>
-          </div>
+          <FormPreview 
+            formData={formData}
+            onExportHtml={handleExportHtml}
+          />
         )}
       </main>
     </div>
