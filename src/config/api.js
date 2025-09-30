@@ -1,11 +1,27 @@
 // API Configuration
 // Update this file to point to your Flask API server
 
+// Auto-detect API URL based on where the frontend is accessed from
+const getApiUrl = () => {
+  // If env var is set, use it
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Auto-detect from browser location
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    return `${protocol}//${hostname}:5000`;
+  }
+  
+  // Fallback for server-side rendering
+  return 'http://localhost:5000';
+};
+
 const API_CONFIG = {
   // Base URL for the Flask API
-  // Auto-detect: Use same host as frontend, or fallback to env var or localhost
-  baseUrl: process.env.REACT_APP_API_URL || 
-          (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000'),
+  baseUrl: getApiUrl(),
   
   // API endpoints
   endpoints: {
