@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, Download, Eye, Settings } from 'lucide-react';
+import { Upload, FileText, Download, Settings } from 'lucide-react';
 import FormBuilder from './components/FormBuilder';
-import FormPreview from './components/FormPreview';
+// import FormPreview from './components/FormPreview'; // Hidden for now
 import JsonDropZone from './components/JsonDropZone';
 import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
@@ -201,12 +201,13 @@ function App() {
           />
         )}
 
-        {currentView === 'preview' && formData && (
+        {/* Preview hidden for now */}
+        {/* {currentView === 'preview' && formData && (
           <FormPreview 
             formData={formData}
             onExportHtml={handleExportHtml}
           />
-        )}
+        )} */}
       </main>
     </div>
   );
