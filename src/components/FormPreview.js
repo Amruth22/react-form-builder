@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import HtmlExporter from '../utils/HtmlExporter';
 import { 
   Eye, 
   Download, 
@@ -624,7 +625,7 @@ const FormPreview = ({ formData, onExportHtml }) => {
             </p>
           </div>
           <button
-            onClick={() => onExportHtml && onExportHtml()}
+            onClick={handleExportHtml}
             className="btn-primary flex items-center space-x-2"
           >
             <Download className="w-4 h-4" />
