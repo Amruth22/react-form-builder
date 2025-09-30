@@ -6,13 +6,18 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 
 ### 🎯 **Core Functionality**
 - **Drag & Drop JSON Import** - Simply drop your JSON file to get started
-- **Visual Form Builder** - Organize questions with intuitive drag & drop
+- **Hierarchical Structure** - Full support for Pages → Sections → Groups → Questions
+- **Visual Form Builder** - Organize questions with intuitive drag & drop at all levels
+- **Repeatable Groups** - Dynamic form sections that users can add/remove instances
 - **Live Form Preview** - See exactly how your form will look and function
-- **Interactive Testing** - Fill out the form and test all functionality
-- **Live Editing** - Click to edit questions inline
+- **Interactive Testing** - Fill out the form and test all functionality including repeatable groups
+- **Live Editing** - Click to edit questions, groups, and sections inline
 - **Multi-page Support** - Handle complex forms with multiple pages
-- **JSON Export** - Export filled form data as structured JSON
-- **HTML Export** - Generate clean, responsive HTML forms
+- **Conditional Inputs** - Options that require additional user input
+- **File Upload Support** - Handle file uploads with preview for images
+- **Advanced Validation** - Min/max length, pattern matching, custom error messages
+- **JSON Export** - Export filled form data as structured hierarchical JSON
+- **HTML Export** - Generate clean, responsive HTML forms with all features
 
 ### 🎨 **User Experience**
 - **Clean, Modern UI** - Built with Tailwind CSS
@@ -83,18 +88,19 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 
 ## 🎯 Supported Question Types
 
-| Type | Description | Options |
-|------|-------------|---------|
-| **Text Input** | Single line text | - |
-| **Email** | Email validation | - |
-| **Phone** | Phone number input | - |
-| **Date** | Date picker | - |
-| **Number** | Numeric input | - |
-| **Long Text** | Multi-line textarea | - |
-| **Dropdown** | Select from options | ✅ |
-| **Radio Buttons** | Single choice | ✅ |
-| **Checkboxes** | Multiple choice | ✅ |
-| **Display Text** | Information only | - |
+| Type | Description | Features |
+|------|-------------|----------|
+| **Text Input** | Single line text | Validation, Min/Max length |
+| **Email** | Email validation | Pattern validation |
+| **Phone** | Phone number input | Pattern validation |
+| **Date** | Date picker | Min/Max date |
+| **Number** | Numeric input | Min/Max value |
+| **Long Text** | Multi-line textarea | Min/Max length |
+| **Dropdown** | Select from options | Auto-detect states/provinces |
+| **Radio Buttons** | Single choice | Conditional inputs |
+| **Checkboxes** | Multiple choice | Conditional inputs |
+| **File Upload** | File attachment | Type restrictions, size limits, image preview |
+| **Display Text** | Information only | Rich text display |
 
 ## 📁 Project Structure
 
