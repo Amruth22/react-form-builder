@@ -11,9 +11,55 @@ function App() {
 
   const handleJsonImport = useCallback((jsonData) => {
     console.log('Imported JSON:', jsonData);
-    setFormData(jsonData);
+
+    // Normalize JSON structure - support both old and new formats
+    const normalizedData = normalizeFormData(jsonData);
+    setFormData(normalizedData);
     setCurrentView('builder');
   }, []);
+
+  // Normalize form data to support both flat and hierarchical structures
+  const normalizeFormData = (data) => {
+    if (!data || !data.pages) return data;
+
+    // Check if already in new format (has sections)
+    const hasNewFormat = data.pages.some(page => page.sections);
+
+    if (hasNewFormat) {
+      // Already in new format
+      return data;
+    }
+
+    // Convert old format (form_elements) to new format (sections -> groups -> questions)
+    const normalizedPages = data.pages.map((page, pageIndex) => {
+      if (page.sections) {
+        return page; // Already normalized
+      }
+
+      // Convert flat form_elements to hierarchical structure
+      return {
+        ...page,
+        title: page.title || `Page ${page.page_number || pageIndex + 1}`,
+        sections: [
+          {
+            title: 'Form Fields',
+            groups: [
+              {
+                title: 'Questions',
+                repeatable: false,
+                questions: page.form_elements || []
+              }
+            ]
+          }
+        ]
+      };
+    });
+
+    return {
+      ...data,
+      pages: normalizedPages
+    };
+  };
 
   const handleExportHtml = useCallback((htmlContent) => {
     const blob = new Blob([htmlContent], { type: 'text/html' });

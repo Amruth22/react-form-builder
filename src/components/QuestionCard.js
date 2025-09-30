@@ -15,13 +15,16 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-const QuestionCard = ({ 
-  question, 
-  index, 
-  isDragging, 
-  dragHandleProps, 
-  onEdit, 
-  onDelete 
+const QuestionCard = ({
+  question,
+  index,
+  isDragging,
+  dragHandleProps,
+  sectionTitle,
+  groupTitle,
+  isRepeatable,
+  onEdit,
+  onDelete
 }) => {
   const getQuestionIcon = (answerType) => {
     const iconMap = {
@@ -75,7 +78,7 @@ const QuestionCard = ({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {/* Question Header */}
-              <div className="flex items-center space-x-3 mb-2">
+              <div className="flex items-center space-x-3 mb-2 flex-wrap">
                 <div className="flex items-center space-x-2">
                   <Icon className="w-4 h-4 text-primary-600" />
                   <span className="text-sm font-medium text-primary-600">
@@ -85,6 +88,21 @@ const QuestionCard = ({
                 {question.required && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                     Required
+                  </span>
+                )}
+                {sectionTitle && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    {sectionTitle}
+                  </span>
+                )}
+                {groupTitle && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {groupTitle}
+                  </span>
+                )}
+                {isRepeatable && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                    In Repeatable Group
                   </span>
                 )}
               </div>
