@@ -5,7 +5,7 @@ const Header = ({ currentView, onViewChange, onReset, hasData }) => {
   const navItems = [
     { id: 'import', label: 'Import', icon: Upload, disabled: false },
     { id: 'builder', label: 'Builder', icon: Settings, disabled: !hasData },
-    { id: 'preview', label: 'Preview', icon: Eye, disabled: !hasData },
+    // { id: 'preview', label: 'Preview', icon: Eye, disabled: !hasData }, // Hidden for now
   ];
 
   return (
