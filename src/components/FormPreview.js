@@ -352,6 +352,13 @@ const FormPreview = ({ formData, onExportHtml }) => {
     }
   }, []);
 
+  const handleExportHtml = useCallback(() => {
+    const htmlContent = HtmlExporter.generateHtml(formData);
+    if (onExportHtml) {
+      onExportHtml(htmlContent);
+    }
+  }, [formData, onExportHtml]);
+
   const renderQuestion = (question, fieldKey, pageIndex, sectionIndex, groupIndex, questionIndex) => {
     if (question.answer_type === 'display_text') {
       return (
