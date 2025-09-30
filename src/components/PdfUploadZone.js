@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import API_CONFIG from '../config/api';
 
-const PdfUploadZone = ({ onJsonReceived, apiUrl = 'http://localhost:5000' }) => {
+const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(null);
