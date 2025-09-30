@@ -3,7 +3,9 @@
 
 const API_CONFIG = {
   // Base URL for the Flask API
-  baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  // Auto-detect: Use same host as frontend, or fallback to env var or localhost
+  baseUrl: process.env.REACT_APP_API_URL || 
+          (typeof window !== 'undefined' ? `http://${window.location.hostname}:5000` : 'http://localhost:5000'),
   
   // API endpoints
   endpoints: {
