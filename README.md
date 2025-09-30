@@ -142,16 +142,142 @@ react-form-builder/
 - **Lucide React** - Beautiful icons
 - **Tailwind CSS** - Utility-first CSS framework
 
+## 🆕 New Features Explained
+
+### **Hierarchical Structure**
+The form builder now supports a complete hierarchical organization:
+- **Pages**: Top-level containers for multi-page forms
+- **Sections**: Logical groupings within pages (e.g., "Personal Information", "Medical History")
+- **Groups**: Sub-groupings within sections that can be repeatable
+- **Questions**: Individual form fields
+
+### **Repeatable Groups**
+Groups can be marked as `repeatable: true`, allowing users to:
+- Add multiple instances of the same group (e.g., multiple beneficiaries, dependents)
+- Remove instances they don't need
+- Each instance maintains its own set of answers
+
+### **Conditional Inputs**
+Options in radio buttons and checkboxes can require additional input:
+```json
+{
+  "value": "other",
+  "label": "Other (please specify)",
+  "requires_input": true,
+  "input_type": "text"
+}
+```
+
+### **Auto-Detection**
+Dropdown fields can auto-populate with common data:
+- US States (50 states)
+- Canadian Provinces (13 provinces/territories)
+- Set `"auto_detected": "province_state"` in your JSON
+
+### **Advanced Validation**
+Questions support comprehensive validation rules:
+- `minLength` / `maxLength` - Character limits
+- `min` / `max` - Numeric ranges
+- `pattern` - Regular expression validation
+- `errorMessage` - Custom error messages
+- `accept` - File type restrictions (for file uploads)
+- `maxSize` - File size limits in MB
+
+### **File Uploads**
+Full support for file attachments:
+- Image preview for uploaded images
+- File name and size display
+- Type and size restrictions
+- Base64 encoding in JSON export
+
 ## 📊 JSON File Format
 
-The app expects JSON files with this structure (from PDF processing):
+The app supports both old (flat) and new (hierarchical) formats.
+
+### **New Hierarchical Format** (Recommended):
 
 ```json
 {
   "document_info": {
-    "source_pdf": "document_name",
+    "source_pdf": "application_form",
     "total_pages": 2,
-    "total_form_elements": 10
+    "extraction_method": "Enhanced Claude Vision",
+    "version": "4.0"
+  },
+  "pages": [
+    {
+      "title": "Page 1: Personal Information",
+      "sections": [
+        {
+          "title": "Basic Information",
+          "groups": [
+            {
+              "title": "Applicant Details",
+              "repeatable": false,
+              "questions": [
+                {
+                  "question": "Full Name",
+                  "answer_type": "text",
+                  "required": true,
+                  "validation": {
+                    "minLength": 2,
+                    "maxLength": 100,
+                    "errorMessage": "Name must be between 2-100 characters"
+                  }
+                },
+                {
+                  "question": "State",
+                  "answer_type": "dropdown",
+                  "options": ["Alabama", "Alaska", "..."],
+                  "auto_detected": "province_state",
+                  "required": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Beneficiaries",
+          "groups": [
+            {
+              "title": "Beneficiary Information",
+              "repeatable": true,
+              "questions": [
+                {
+                  "question": "Beneficiary Name",
+                  "answer_type": "text",
+                  "required": true
+                },
+                {
+                  "question": "Relationship",
+                  "answer_type": "radio",
+                  "options": [
+                    {"value": "spouse", "label": "Spouse"},
+                    {"value": "child", "label": "Child"},
+                    {
+                      "value": "other",
+                      "label": "Other (specify)",
+                      "requires_input": true,
+                      "input_type": "text"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### **Old Flat Format** (Still Supported):
+```json
+{
+  "document_info": {
+    "source_pdf": "document_name",
+    "total_pages": 1
   },
   "pages": [
     {
@@ -161,18 +287,13 @@ The app expects JSON files with this structure (from PDF processing):
           "question": "Full Name:",
           "answer_type": "text",
           "required": true
-        },
-        {
-          "question": "Country:",
-          "answer_type": "dropdown",
-          "options": ["USA", "Canada", "UK"],
-          "required": false
         }
       ]
     }
   ]
 }
 ```
+*Note: Old format is automatically converted to hierarchical structure on import.*
 
 ## 🎨 Customization
 
