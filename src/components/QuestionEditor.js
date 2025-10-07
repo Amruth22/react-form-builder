@@ -24,7 +24,8 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
     required: false,
     options: [],
     validation: {},
-    auto_detected: null
+    auto_detected: null,
+    applies_to: []
   });
 
   const [showValidation, setShowValidation] = useState(false);
@@ -37,7 +38,8 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
         required: question.required || false,
         options: question.options || [],
         validation: question.validation || {},
-        auto_detected: question.auto_detected || null
+        auto_detected: question.auto_detected || null,
+        applies_to: question.applies_to || []
       });
     }
   }, [question]);
@@ -148,12 +150,18 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
     { value: 'textarea', label: 'Long Text' },
     { value: 'dropdown', label: 'Dropdown' },
     { value: 'radio', label: 'Radio Buttons' },
+    { value: 'radio_multi_person', label: 'Multi-Person Question' },
     { value: 'checkbox', label: 'Checkboxes' },
     { value: 'file', label: 'File Upload' },
     { value: 'display_text', label: 'Display Text' }
   ];
 
-  const needsOptions = ['dropdown', 'radio', 'checkbox'].includes(formData.answer_type);
+  const PERSON_OPTIONS = [
+    'applicant', 'spouse', 'employee', 'dependent', 'member', 'primary', 
+    'secondary', 'insured', 'owner', 'beneficiary', 'child', 'parent'
+  ];
+
+  const needsOptions = ['dropdown', 'radio', 'checkbox', 'radio_multi_person'].includes(formData.answer_type);
   const supportsValidation = ['text', 'number', 'email', 'tel', 'textarea'].includes(formData.answer_type);
 
   return (
