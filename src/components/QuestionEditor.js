@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle, FileType, MapPin, Info } from 'lucide-react';
+import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle, FileType, MapPin, Info, Link } from 'lucide-react';
+import { getAllQuestionsWithIds, generateQuestionId } from '../utils/formUtils';
 
 const US_STATES = [
   'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
@@ -17,17 +18,24 @@ const CANADIAN_PROVINCES = [
   'Quebec', 'Saskatchewan', 'Yukon'
 ];
 
-const QuestionEditor = ({ question, onSave, onCancel }) => {
+const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, currentPath }) => {
   const [formData, setFormData] = useState({
     question: '',
     answer_type: 'text',
     required: false,
     options: [],
     validation: {},
-    auto_detected: null
+    auto_detected: null,
+    parent_question_id: null,
+    show_when: null,
+    sub_questions: []
   });
 
   const [showValidation, setShowValidation] = useState(false);
+  const [showDependencies, setShowDependencies] = useState(false);
+  const [showSubQuestions, setShowSubQuestions] = useState(false);
+  const [availableParentQuestions, setAvailableParentQuestions] = useState([]);
+  const [parentQuestionOptions, setParentQuestionOptions] = useState([]);
 
   useEffect(() => {
     if (question) {
@@ -37,10 +45,52 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
         required: question.required || false,
         options: question.options || [],
         validation: question.validation || {},
-        auto_detected: question.auto_detected || null
+        auto_detected: question.auto_detected || null,
+        parent_question_id: question.parent_question_id || null,
+        show_when: question.show_when || null,
+        sub_questions: question.sub_questions || []
       });
     }
-  }, [question]);
+
+    // Load available parent questions (questions that appear before this one)
+    if (allFormData && currentPath) {
+      const allQuestions = getAllQuestionsWithIds(allFormData);
+      const currentQuestionId = generateQuestionId(
+        currentPath.pageIndex,
+        currentPath.sectionIndex,
+        currentPath.groupIndex,
+        currentPath.questionIndex
+      );
+
+      // Filter to only questions that appear before this one
+      const eligibleParents = allQuestions.filter(q => {
+        // Questions must have options to be parents (radio, checkbox, dropdown)
+        const hasOptions = ['radio', 'checkbox', 'dropdown'].includes(q.question.answer_type);
+        // Must not be the current question
+        const notSelf = q.id !== currentQuestionId;
+        // Must not create circular dependency
+        const notChild = q.question.parent_question_id !== currentQuestionId;
+
+        return hasOptions && notSelf && notChild;
+      });
+
+      setAvailableParentQuestions(eligibleParents);
+    }
+  }, [question, allFormData, currentPath]);
+
+  // Update parent question options when parent is selected
+  useEffect(() => {
+    if (formData.parent_question_id && allFormData) {
+      const parentQ = availableParentQuestions.find(q => q.id === formData.parent_question_id);
+      if (parentQ && parentQ.question.options) {
+        setParentQuestionOptions(parentQ.question.options);
+      } else {
+        setParentQuestionOptions([]);
+      }
+    } else {
+      setParentQuestionOptions([]);
+    }
+  }, [formData.parent_question_id, availableParentQuestions, allFormData]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -574,6 +624,174 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
               </div>
             </div>
           )}
+
+          {/* Question Dependencies */}
+          <div className="border border-gray-200 rounded-lg">
+            <button
+              onClick={() => setShowDependencies(!showDependencies)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <Link className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Question Dependencies</span>
+              </div>
+              {showDependencies ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {showDependencies && (
+              <div className="p-4 border-t border-gray-200 space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    Make this question conditional - it will only show when the parent question has a specific answer.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Parent Question
+                  </label>
+                  <select
+                    value={formData.parent_question_id || ''}
+                    onChange={(e) => handleInputChange('parent_question_id', e.target.value || null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="">No parent (always visible)</option>
+                    {availableParentQuestions.map(q => (
+                      <option key={q.id} value={q.id}>
+                        {q.question.question} ({q.pageTitle} → {q.sectionTitle} → {q.groupTitle})
+                      </option>
+                    ))}
+                  </select>
+                  {availableParentQuestions.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      No eligible parent questions found. Parent questions must have options (radio, checkbox, or dropdown).
+                    </p>
+                  )}
+                </div>
+
+                {formData.parent_question_id && parentQuestionOptions.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Show this question when parent answer is:
+                    </label>
+                    <div className="space-y-2">
+                      {parentQuestionOptions.map((option, index) => {
+                        const optionValue = typeof option === 'string' ? option : option.value || option.label || '';
+                        const optionLabel = typeof option === 'string' ? option : option.label || option.value || '';
+                        const isSelected = Array.isArray(formData.show_when)
+                          ? formData.show_when.includes(optionValue)
+                          : formData.show_when === optionValue;
+
+                        return (
+                          <label key={index} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  // Add to array
+                                  const newShowWhen = Array.isArray(formData.show_when)
+                                    ? [...formData.show_when, optionValue]
+                                    : [optionValue];
+                                  handleInputChange('show_when', newShowWhen);
+                                } else {
+                                  // Remove from array
+                                  const newShowWhen = Array.isArray(formData.show_when)
+                                    ? formData.show_when.filter(v => v !== optionValue)
+                                    : [];
+                                  handleInputChange('show_when', newShowWhen.length > 0 ? newShowWhen : null);
+                                }
+                              }}
+                              className="h-4 w-4 text-primary-600 rounded"
+                            />
+                            <span className="text-sm text-gray-700">{optionLabel}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Select one or more values. This question will show when the parent has any of the selected answers.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Sub-Questions */}
+          <div className="border border-gray-200 rounded-lg">
+            <button
+              onClick={() => setShowSubQuestions(!showSubQuestions)}
+              className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center space-x-2">
+                <ChevronDown className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-gray-700">Sub-Questions</span>
+                {formData.sub_questions && formData.sub_questions.length > 0 && (
+                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                    {formData.sub_questions.length}
+                  </span>
+                )}
+              </div>
+              {showSubQuestions ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {showSubQuestions && (
+              <div className="p-4 border-t border-gray-200 space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-green-800">
+                    Add sub-questions that belong to this question (e.g., "Applicant Name" with sub-questions for "First Name", "Last Name").
+                  </p>
+                </div>
+
+                {formData.sub_questions && formData.sub_questions.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.sub_questions.map((subQ, index) => (
+                      <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
+                        <span className="flex-1 text-sm text-gray-700">{subQ.question || 'Untitled'}</span>
+                        <span className="text-xs text-gray-500">{subQ.answer_type}</span>
+                        <button
+                          onClick={() => {
+                            const newSubQuestions = formData.sub_questions.filter((_, i) => i !== index);
+                            handleInputChange('sub_questions', newSubQuestions);
+                          }}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => {
+                    const newSubQuestion = {
+                      question: 'New Sub-Question',
+                      answer_type: 'text',
+                      required: false
+                    };
+                    handleInputChange('sub_questions', [...(formData.sub_questions || []), newSubQuestion]);
+                  }}
+                  className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-green-500 hover:text-green-600 transition-colors"
+                >
+                  + Add Sub-Question
+                </button>
+
+                <p className="text-xs text-gray-500">
+                  Note: Sub-questions are simplified and will inherit some properties from the parent question.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}

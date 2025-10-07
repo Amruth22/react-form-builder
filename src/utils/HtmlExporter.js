@@ -506,10 +506,16 @@ class HtmlExporter {
   static generateQuestions(questions, pageIndex, sectionIndex, groupIndex, instanceIndex) {
     return questions.map((question, questionIndex) => {
       const fieldId = `field_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}_${instanceIndex}`;
-      
+      const questionId = question.id || `q_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}`;
+
+      // Build conditional visibility attributes
+      const conditionalAttrs = question.parent_question_id
+        ? `data-parent="${question.parent_question_id}" data-show-when='${JSON.stringify(question.show_when || null)}' style="display: none;"`
+        : '';
+
       if (question.answer_type === 'display_text') {
         return `
-          <div class="display-text">
+          <div class="display-text" ${conditionalAttrs}>
             ${question.question}
           </div>
         `;
@@ -674,13 +680,55 @@ class HtmlExporter {
           `;
       }
 
+      // Generate sub-questions HTML if they exist
+      let subQuestionsHtml = '';
+      if (question.sub_questions && question.sub_questions.length > 0) {
+        subQuestionsHtml = `
+          <div class="sub-questions" style="margin-left: 24px; padding-left: 16px; border-left: 2px solid #e5e7eb; margin-top: 16px;">
+            <div style="font-size: 0.875rem; font-weight: 600; color: #6b7280; margin-bottom: 8px;">Sub-questions:</div>
+            ${question.sub_questions.map((subQ, subIndex) => {
+              const subFieldId = `${fieldId}_sub_${subIndex}`;
+              const subRequired = subQ.required ? 'required' : '';
+              const subRequiredIndicator = subQ.required ? ' <span class="required">*</span>' : '';
+
+              return `
+                <div class="form-group" style="margin-bottom: 16px;">
+                  <label class="form-label" for="${subFieldId}" style="color: #6b7280;">
+                    ${this.escapeHtml(subQ.question)}${subRequiredIndicator}
+                  </label>
+                  ${subQ.answer_type === 'textarea' ? `
+                    <textarea
+                      id="${subFieldId}"
+                      name="${subFieldId}"
+                      class="form-control"
+                      rows="3"
+                      ${subRequired}
+                    ></textarea>
+                  ` : `
+                    <input
+                      type="${['email', 'tel', 'date', 'number'].includes(subQ.answer_type) ? subQ.answer_type : 'text'}"
+                      id="${subFieldId}"
+                      name="${subFieldId}"
+                      class="form-control"
+                      ${subRequired}
+                    >
+                  `}
+                  <div id="${subFieldId}_error" class="error-message" style="display: none;"></div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
       return `
-        <div class="form-group">
+        <div class="form-group" id="question_${questionId}" ${conditionalAttrs}>
           <label class="form-label" for="${fieldId}">
             ${this.escapeHtml(question.question)}${requiredIndicator}
           </label>
           ${inputHtml}
           <div id="${fieldId}_error" class="error-message" style="display: none;"></div>
+          ${subQuestionsHtml}
         </div>
       `;
     }).join('');
@@ -689,14 +737,113 @@ class HtmlExporter {
   static generateJavaScript(pages) {
     return `
       let groupInstanceCounters = {};
-      
+
       function showPage(pageIndex) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.page-btn').forEach(btn => btn.classList.remove('active'));
-        
+
         document.getElementById('page' + pageIndex).classList.add('active');
         document.querySelectorAll('.page-btn')[pageIndex].classList.add('active');
       }
+
+      // Conditional question visibility
+      function checkQuestionVisibility(parentQuestionId, value) {
+        // Find all questions that depend on this parent
+        const dependentQuestions = document.querySelectorAll('[data-parent="' + parentQuestionId + '"]');
+
+        dependentQuestions.forEach(questionDiv => {
+          const showWhenStr = questionDiv.getAttribute('data-show-when');
+          const showWhen = showWhenStr ? JSON.parse(showWhenStr) : null;
+
+          let shouldShow = false;
+
+          if (!showWhen) {
+            // No condition specified, show if parent has any value
+            shouldShow = value && value !== '';
+          } else if (Array.isArray(showWhen)) {
+            // Multiple valid values
+            if (Array.isArray(value)) {
+              // Parent is checkbox (multiple values)
+              shouldShow = showWhen.some(val => value.includes(val));
+            } else {
+              // Parent is single value
+              shouldShow = showWhen.includes(value);
+            }
+          } else {
+            // Single valid value
+            if (Array.isArray(value)) {
+              shouldShow = value.includes(showWhen);
+            } else {
+              shouldShow = value === showWhen;
+            }
+          }
+
+          questionDiv.style.display = shouldShow ? 'block' : 'none';
+        });
+      }
+
+      // Add event listeners for all questions that have dependents
+      function initConditionalQuestions() {
+        const allQuestions = document.querySelectorAll('[data-parent]');
+        const parentIds = new Set();
+
+        allQuestions.forEach(q => {
+          const parentId = q.getAttribute('data-parent');
+          if (parentId) parentIds.add(parentId);
+        });
+
+        parentIds.forEach(parentId => {
+          // Find the parent question input element
+          const parentElement = document.querySelector('#question_' + parentId);
+          if (!parentElement) return;
+
+          // Add listeners based on input type
+          const radios = parentElement.querySelectorAll('input[type="radio"]');
+          const checkboxes = parentElement.querySelectorAll('input[type="checkbox"]');
+          const selects = parentElement.querySelectorAll('select');
+          const inputs = parentElement.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"]');
+
+          if (radios.length > 0) {
+            radios.forEach(radio => {
+              radio.addEventListener('change', function() {
+                if (this.checked) {
+                  checkQuestionVisibility(parentId, this.value);
+                }
+              });
+            });
+          }
+
+          if (checkboxes.length > 0) {
+            checkboxes.forEach(checkbox => {
+              checkbox.addEventListener('change', function() {
+                const checkedValues = Array.from(checkboxes)
+                  .filter(cb => cb.checked)
+                  .map(cb => cb.value);
+                checkQuestionVisibility(parentId, checkedValues);
+              });
+            });
+          }
+
+          if (selects.length > 0) {
+            selects.forEach(select => {
+              select.addEventListener('change', function() {
+                checkQuestionVisibility(parentId, this.value);
+              });
+            });
+          }
+
+          if (inputs.length > 0) {
+            inputs.forEach(input => {
+              input.addEventListener('blur', function() {
+                checkQuestionVisibility(parentId, this.value);
+              });
+            });
+          }
+        });
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', initConditionalQuestions);
       
       function addGroupInstance(groupId, pageIndex, sectionIndex, groupIndex) {
         if (!groupInstanceCounters[groupId]) {

@@ -5,6 +5,7 @@ import FormBuilder from './components/FormBuilder';
 import JsonDropZone from './components/JsonDropZone';
 import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
+import { ensureQuestionIds } from './utils/formUtils';
 
 function App() {
   const [formData, setFormData] = useState(null);
@@ -15,7 +16,11 @@ function App() {
     console.log('Imported JSON:', jsonData);
 
     // Normalize JSON structure - support both old and new formats
-    const normalizedData = normalizeFormData(jsonData);
+    let normalizedData = normalizeFormData(jsonData);
+
+    // Ensure all questions have unique IDs
+    normalizedData = ensureQuestionIds(normalizedData);
+
     setFormData(normalizedData);
     setCurrentView('builder');
   }, []);

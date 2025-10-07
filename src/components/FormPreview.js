@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import HtmlExporter from '../utils/HtmlExporter';
+import { shouldQuestionBeVisible, generateQuestionId } from '../utils/formUtils';
 import { 
   Eye, 
   Download, 
@@ -359,7 +360,17 @@ const FormPreview = ({ formData, onExportHtml }) => {
     }
   }, [formData, onExportHtml]);
 
-  const renderQuestion = (question, fieldKey, pageIndex, sectionIndex, groupIndex, questionIndex) => {
+  const renderQuestion = (question, fieldKey, pageIndex, sectionIndex, groupIndex, questionIndex, instanceIndex) => {
+    // Check if question should be visible based on parent question
+    if (question.parent_question_id) {
+      const parentValue = formValues[question.parent_question_id] || formValues[`field_${question.parent_question_id}`];
+      const isVisible = shouldQuestionBeVisible(question, parentValue, formValues);
+
+      if (!isVisible) {
+        return null; // Don't render if not visible
+      }
+    }
+
     if (question.answer_type === 'display_text') {
       return (
         <div key={fieldKey} className="mb-6">
@@ -600,6 +611,44 @@ const FormPreview = ({ formData, onExportHtml }) => {
             <span>{hasError}</span>
           </div>
         )}
+
+        {/* Sub-Questions */}
+        {question.sub_questions && question.sub_questions.length > 0 && (
+          <div className="mt-4 ml-6 pl-4 border-l-2 border-gray-300 space-y-4">
+            <div className="text-sm font-medium text-gray-600 mb-2">Sub-questions:</div>
+            {question.sub_questions.map((subQ, subIndex) => {
+              const subFieldKey = `${fieldKey}_sub_${subIndex}`;
+              const subValue = formValues[subFieldKey] || '';
+
+              return (
+                <div key={subFieldKey} className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    {subQ.question}
+                    {subQ.required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+
+                  {subQ.answer_type === 'textarea' ? (
+                    <textarea
+                      value={subValue}
+                      onChange={(e) => handleInputChange(subFieldKey, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                      rows={3}
+                      placeholder="Enter your response..."
+                    />
+                  ) : (
+                    <input
+                      type={subQ.answer_type === 'tel' ? 'tel' : subQ.answer_type || 'text'}
+                      value={subValue}
+                      onChange={(e) => handleInputChange(subFieldKey, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder={`Enter ${subQ.answer_type || 'text'}...`}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };
@@ -744,7 +793,7 @@ const FormPreview = ({ formData, onExportHtml }) => {
                                 {/* Questions */}
                                 {group.questions?.map((question, questionIndex) => {
                                   const fieldKey = generateFieldKey(currentPageIndex, sectionIndex, groupIndex, questionIndex, instanceIndex);
-                                  return renderQuestion(question, fieldKey, currentPageIndex, sectionIndex, groupIndex, questionIndex);
+                                  return renderQuestion(question, fieldKey, currentPageIndex, sectionIndex, groupIndex, questionIndex, instanceIndex);
                                 })}
                               </div>
                             ))}

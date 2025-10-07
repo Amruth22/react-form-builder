@@ -707,6 +707,8 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       {editingQuestion && (
         <QuestionEditor
           question={editingQuestion.question}
+          formData={formData}
+          currentPath={editingQuestion.path}
           onSave={(updatedQuestion) => handleQuestionUpdate(editingQuestion.path, updatedQuestion)}
           onCancel={() => setEditingQuestion(null)}
         />

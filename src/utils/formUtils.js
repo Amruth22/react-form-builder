@@ -268,3 +268,130 @@ export const deleteGroup = (formData, pageIndex, sectionIndex, groupIndex) => {
 
   return newFormData;
 };
+
+/**
+ * Generate unique question ID
+ */
+export const generateQuestionId = (pageIndex, sectionIndex, groupIndex, questionIndex) => {
+  return `q_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}`;
+};
+
+/**
+ * Parse question ID to get path
+ */
+export const parseQuestionId = (questionId) => {
+  const parts = questionId.split('_');
+  if (parts.length !== 5 || parts[0] !== 'q') return null;
+
+  return {
+    pageIndex: parseInt(parts[1]),
+    sectionIndex: parseInt(parts[2]),
+    groupIndex: parseInt(parts[3]),
+    questionIndex: parseInt(parts[4])
+  };
+};
+
+/**
+ * Get question by ID
+ */
+export const getQuestionById = (formData, questionId) => {
+  const path = parseQuestionId(questionId);
+  if (!path) return null;
+
+  try {
+    return formData.pages[path.pageIndex]
+      .sections[path.sectionIndex]
+      .groups[path.groupIndex]
+      .questions[path.questionIndex];
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Get all questions with their IDs and paths
+ */
+export const getAllQuestionsWithIds = (formData) => {
+  if (!formData || !formData.pages) return [];
+
+  const questions = [];
+
+  formData.pages.forEach((page, pageIndex) => {
+    page.sections?.forEach((section, sectionIndex) => {
+      section.groups?.forEach((group, groupIndex) => {
+        group.questions?.forEach((question, questionIndex) => {
+          questions.push({
+            id: generateQuestionId(pageIndex, sectionIndex, groupIndex, questionIndex),
+            question: question,
+            path: { pageIndex, sectionIndex, groupIndex, questionIndex },
+            sectionTitle: section.title,
+            groupTitle: group.title,
+            pageTitle: page.title || `Page ${page.page_number || pageIndex + 1}`
+          });
+        });
+      });
+    });
+  });
+
+  return questions;
+};
+
+/**
+ * Get child questions of a parent question
+ */
+export const getChildQuestions = (formData, parentQuestionId) => {
+  const allQuestions = getAllQuestionsWithIds(formData);
+  return allQuestions.filter(q => q.question.parent_question_id === parentQuestionId);
+};
+
+/**
+ * Check if a question should be visible based on parent question answer
+ */
+export const shouldQuestionBeVisible = (question, parentAnswer, formValues) => {
+  // If no parent, always visible
+  if (!question.parent_question_id) return true;
+
+  // If no show_when condition, always visible when parent has any value
+  if (!question.show_when) return !!parentAnswer;
+
+  // Check if parent answer matches show_when condition
+  if (Array.isArray(question.show_when)) {
+    // Multiple valid values
+    if (Array.isArray(parentAnswer)) {
+      // Parent answer is array (checkbox)
+      return question.show_when.some(val => parentAnswer.includes(val));
+    } else {
+      // Parent answer is single value (radio, dropdown, text)
+      return question.show_when.includes(parentAnswer);
+    }
+  } else {
+    // Single valid value
+    if (Array.isArray(parentAnswer)) {
+      return parentAnswer.includes(question.show_when);
+    } else {
+      return parentAnswer === question.show_when;
+    }
+  }
+};
+
+/**
+ * Ensure all questions have unique IDs
+ */
+export const ensureQuestionIds = (formData) => {
+  const newFormData = JSON.parse(JSON.stringify(formData)); // Deep clone
+
+  newFormData.pages?.forEach((page, pageIndex) => {
+    page.sections?.forEach((section, sectionIndex) => {
+      section.groups?.forEach((group, groupIndex) => {
+        group.questions?.forEach((question, questionIndex) => {
+          // Generate ID if not present
+          if (!question.id) {
+            question.id = generateQuestionId(pageIndex, sectionIndex, groupIndex, questionIndex);
+          }
+        });
+      });
+    });
+  });
+
+  return newFormData;
+};

@@ -1,20 +1,22 @@
 import React from 'react';
-import { 
-  GripVertical, 
-  Edit3, 
-  Trash2, 
-  Type, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  Hash, 
-  List, 
-  CheckSquare, 
-  Circle, 
+import {
+  GripVertical,
+  Edit3,
+  Trash2,
+  Type,
+  Mail,
+  Phone,
+  Calendar,
+  Hash,
+  List,
+  CheckSquare,
+  Circle,
   FileText,
   MessageSquare,
   FileType,
-  MapPin
+  MapPin,
+  Link,
+  ChevronDown
 } from 'lucide-react';
 
 const QuestionCard = ({
@@ -169,6 +171,26 @@ const QuestionCard = ({
               {question.validation && Object.keys(question.validation).length > 0 && (
                 <div className="text-sm text-gray-600 mt-2">
                   <span className="font-medium">Validation:</span> {question.validation.type || 'Custom'}
+                </div>
+              )}
+
+              {/* Parent Question Dependency */}
+              {question.parent_question_id && (
+                <div className="mt-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <Link className="w-3 h-3 mr-1" />
+                    Conditional: Shows when parent = {Array.isArray(question.show_when) ? question.show_when.join(', ') : question.show_when || 'any value'}
+                  </span>
+                </div>
+              )}
+
+              {/* Sub-Questions */}
+              {question.sub_questions && question.sub_questions.length > 0 && (
+                <div className="mt-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                    <ChevronDown className="w-3 h-3 mr-1" />
+                    Has {question.sub_questions.length} sub-question{question.sub_questions.length !== 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
             </div>
