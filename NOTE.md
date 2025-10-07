@@ -225,6 +225,11 @@ Functions:
 - [ ] Auto-navigate to new page after creation
 - [ ] Page counter updates correctly
 - [ ] Sidebar shows/hides delete button on hover
+- [ ] Drag page by grip handle to reorder
+- [ ] Page order updates correctly
+- [ ] Selected page follows when dragged
+- [ ] Visual feedback during drag (shadow, scale)
+- [ ] Placeholder shows drop location
 
 ### Smart Detection:
 - [ ] "Select all" text → Checkbox
