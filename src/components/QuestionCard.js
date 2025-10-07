@@ -12,7 +12,8 @@ import {
   CheckSquare, 
   Circle, 
   FileText,
-  MessageSquare
+  MessageSquare,
+  Users
 } from 'lucide-react';
 
 const QuestionCard = ({
@@ -36,6 +37,7 @@ const QuestionCard = ({
       dropdown: List,
       checkbox: CheckSquare,
       radio: Circle,
+      radio_multi_person: Users,
       textarea: FileText,
       display_text: MessageSquare,
     };
@@ -53,6 +55,7 @@ const QuestionCard = ({
       dropdown: 'Dropdown',
       checkbox: 'Checkboxes',
       radio: 'Radio Buttons',
+      radio_multi_person: 'Multi-Person Question',
       textarea: 'Long Text',
       display_text: 'Display Text',
     };
@@ -112,10 +115,29 @@ const QuestionCard = ({
                 {question.question || 'Untitled Question'}
               </h3>
 
+              {/* Multi-Person Applies To Badge */}
+              {question.answer_type === 'radio_multi_person' && question.applies_to && (
+                <div className="mb-2">
+                  <p className="text-sm text-gray-600 mb-1">Applies to:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {question.applies_to.map((person, personIndex) => (
+                      <span
+                        key={personIndex}
+                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-100 text-indigo-700"
+                      >
+                        {person.charAt(0).toUpperCase() + person.slice(1)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Options Preview */}
               {question.options && question.options.length > 0 && (
                 <div className="mb-2">
-                  <p className="text-sm text-gray-600 mb-1">Options:</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {question.answer_type === 'radio_multi_person' ? 'Choices (for each person):' : 'Options:'}
+                  </p>
                   <div className="flex flex-wrap gap-1">
                     {question.options.slice(0, 3).map((option, optIndex) => {
                       const optionLabel = typeof option === 'string' 
