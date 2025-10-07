@@ -395,6 +395,7 @@ onFormDataChange(newFormData);
 ### Implemented:
 - ✅ Page creation UI
 - ✅ Page deletion with validation
+- ✅ Page drag-and-drop reordering
 - ✅ Enhanced sidebar with quick actions
 - ✅ Smart PDF field detection utility
 - ✅ Integration with PDF upload flow
@@ -407,9 +408,9 @@ onFormDataChange(newFormData);
 
 ### Not Implemented (Out of Scope):
 - ❌ Question dependencies (separate feature)
-- ❌ Page drag-and-drop reordering
 - ❌ Detection override UI
 - ❌ Manual metadata editing
+- ❌ Page title editing (use section editor)
 
 ---
 
