@@ -5,6 +5,7 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 ## ✨ Features
 
 ### 🎯 **Core Functionality**
+- **🆕 Direct PDF Upload** - Upload PDF files and automatically extract form fields with AI
 - **Drag & Drop JSON Import** - Simply drop your JSON file to get started
 - **Hierarchical Structure** - Full support for Pages → Sections → Groups → Questions
 - **Visual Form Builder** - Organize questions with intuitive drag & drop at all levels
@@ -36,6 +37,7 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 ### Prerequisites
 - Node.js 16+ 
 - npm or yarn
+- **Flask PDF Extractor API** (for PDF upload feature) - [Get it here](https://github.com/Amruth22/pdf-form-extractor)
 
 ### Installation
 
@@ -55,15 +57,49 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
    npm start
    ```
 
-4. **Open in browser**
+4. **Configure API (Optional - for PDF upload)**
+   ```bash
+   # Copy environment file
+   cp .env.example .env
+   
+   # Edit .env and set API URL
+   REACT_APP_API_URL=http://localhost:5000
+   ```
+
+5. **Open in browser**
    ```
    http://localhost:3000
    ```
 
+### With PDF Upload Feature
+
+To use the PDF upload feature, you need the Flask API running:
+
+```bash
+# Terminal 1: Start Flask API
+cd pdf-form-extractor
+python flask_api.py
+
+# Terminal 2: Start React App
+cd react-form-builder
+npm start
+```
+
+See [API_INTEGRATION_GUIDE.md](API_INTEGRATION_GUIDE.md) for detailed setup.
+
 ## 📖 How to Use
 
-### 1. **Import JSON File**
-- Drag & drop your JSON file (from PDF processing) onto the upload zone
+### 1. **Import Form Data**
+
+**Option A: Upload PDF (Recommended)**
+- Click "Upload PDF" button
+- Drag & drop your PDF file or click to browse
+- AI will automatically extract all form fields (2-5 minutes)
+- Form builder loads automatically with extracted data
+
+**Option B: Upload JSON**
+- Click "Upload JSON" button
+- Drag & drop your JSON file (from PDF processing)
 - Or click to browse and select your file
 - The app will automatically parse and load your form structure
 

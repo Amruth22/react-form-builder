@@ -224,6 +224,22 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     onExportHtml(htmlContent);
   }, [formData, onExportHtml]);
 
+  const handleExportJson = useCallback(() => {
+    // Create a formatted JSON string
+    const jsonString = JSON.stringify(formData, null, 2);
+    
+    // Create blob and download
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${formData?.document_info?.source_pdf || 'form'}_structure.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [formData]);
+
   if (!formData) {
     return (
       <div className="text-center py-12">
@@ -245,13 +261,22 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
               {calculateTotalQuestions(formData)} questions across {formData.pages?.length || 0} pages
             </p>
           </div>
-          <button
-            onClick={handleExport}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export HTML</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleExportJson}
+              className="btn-secondary flex items-center space-x-2"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Download JSON</span>
+            </button>
+            <button
+              onClick={handleExport}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export HTML</span>
+            </button>
+          </div>
         </div>
       </div>
 
