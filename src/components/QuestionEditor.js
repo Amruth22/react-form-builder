@@ -721,6 +721,77 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                         );
                       })}
                     </div>
+
+          {/* Multi-Person Settings */}
+          {formData.answer_type === 'radio_multi_person' && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-4">
+              <h4 className="text-sm font-medium text-indigo-900">Multi-Person Question Settings</h4>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Who should answer this question? (Select multiple)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {PERSON_OPTIONS.map(person => (
+                    <label key={person} className="flex items-center p-2 border border-gray-200 rounded hover:bg-white cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.applies_to.includes(person)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              applies_to: [...prev.applies_to, person]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              applies_to: prev.applies_to.filter(p => p !== person)
+                            }));
+                          }
+                        }}
+                        className="h-4 w-4 text-indigo-600 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-700 capitalize">{person}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview */}
+              {formData.applies_to.length > 0 && formData.options.length > 0 && (
+                <div className="border-t border-indigo-200 pt-4">
+                  <h5 className="text-sm font-medium text-gray-700 mb-3">Preview:</h5>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                    <p className="font-medium text-gray-900">{formData.question || 'Your question here'}</p>
+                    {formData.applies_to.map(person => (
+                      <div key={person} className="flex items-center space-x-3 pl-4">
+                        <span className="text-sm font-medium text-gray-700 capitalize min-w-[100px]">{person}:</span>
+                        <div className="flex items-center space-x-4">
+                          {formData.options.map((option, idx) => {
+                            const label = typeof option === 'string' ? option : option.label || option.value;
+                            return (
+                              <label key={idx} className="flex items-center space-x-2">
+                                <input type="radio" name={`preview_${person}`} className="h-4 w-4" disabled />
+                                <span className="text-sm text-gray-600">{label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {formData.applies_to.length === 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                  <p className="text-sm text-yellow-800">Please select at least one person who should answer this question.</p>
+                </div>
+              )}
+            </div>
+          )}
+
                     <p className="text-xs text-gray-500 mt-2">
                       Select one or more values. This question will show when the parent has any of the selected answers.
                     </p>
