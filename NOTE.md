@@ -184,11 +184,31 @@ Functions:
 
 ### 3. **src/utils/pdfFieldDetection.js** (NEW)
 **Purpose:** Smart field type detection logic
-**Lines:** 211 lines
+**Lines:** 263 lines
 **Exports:**
 - `determineFieldType()`
 - `applySmartFieldDetection()`
 - `analyzeFieldDetection()`
+- `enrichWithPdfMetadata()`
+
+### 4. **src/components/QuestionCard.js**
+**Changes:**
+- Added PDF metadata badges display
+- Shows field name, page number, detected type
+- Indigo badges for PDF info
+- Green badge for auto-detection
+
+**Lines Changed:** ~23 added
+
+### 5. **src/components/QuestionEditor.js**
+**Changes:**
+- Added PDF metadata info section at top
+- Read-only display with grid layout
+- Shows field name, page, original type, detected type
+- Coordinates display if available
+- Info icon and helpful text
+
+**Lines Changed:** ~58 added
 
 ---
 
