@@ -231,8 +231,19 @@ Functions:
 - [ ] Detection metadata added to questions
 - [ ] Works with hierarchical structure
 
+### PDF Metadata:
+- [ ] Metadata badges show in QuestionCard
+- [ ] Field name displays correctly
+- [ ] Page number shows correctly
+- [ ] Auto-detected badge appears when applicable
+- [ ] QuestionEditor shows full metadata section
+- [ ] Metadata is read-only in editor
+- [ ] Field names auto-generated from questions
+- [ ] Coordinates display if available
+
 ### Integration:
 - [ ] PDF upload applies detection
+- [ ] PDF upload enriches metadata
 - [ ] JSON import still works
 - [ ] Form builder displays correctly
 - [ ] Export HTML includes correct types
