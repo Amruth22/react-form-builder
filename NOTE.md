@@ -111,6 +111,53 @@ Functions:
 
 ---
 
+### 3. **PDF Metadata Tags**
+
+#### What's New:
+- ✅ **Visual Tags**: Display PDF source info in question cards
+- ✅ **Detailed View**: Comprehensive metadata in question editor
+- ✅ **Auto-Generation**: Field names generated from question text
+- ✅ **Traceability**: Track which PDF page/field each question came from
+
+#### UI Changes:
+- **QuestionCard**: Shows PDF metadata badges below question
+  - PDF field name badge (indigo)
+  - Page number badge (indigo)
+  - Auto-detected type badge (green)
+- **QuestionEditor**: Full metadata section at top
+  - PDF field name
+  - Source page number
+  - Original type
+  - Detected type
+  - Coordinates (if available)
+  - Read-only display
+
+#### Metadata Structure:
+```json
+{
+  "pdf_metadata": {
+    "field_name": "applicant_full_name",
+    "page": 1,
+    "original_type": "checkbox",
+    "detected_type": "radio",
+    "detection_applied": true,
+    "extracted_at": "2024-01-15T10:30:00Z",
+    "coordinates": {
+      "x": 100,
+      "y": 200
+    }
+  }
+}
+```
+
+#### Functions Added:
+- `enrichWithPdfMetadata()` - Adds metadata to all questions
+- Auto-generates field names from question text
+- Preserves page numbers
+- Adds extraction timestamp
+
+---
+
 ## 📁 Files Modified
 
 ### 1. **src/components/FormBuilder.js**
