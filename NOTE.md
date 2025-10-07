@@ -392,12 +392,16 @@ onFormDataChange(newFormData);
 - ✅ Integration with PDF upload flow
 - ✅ Detection metadata tracking
 - ✅ Improved section creation visibility
+- ✅ PDF metadata tags in QuestionCard
+- ✅ PDF metadata display in QuestionEditor
+- ✅ Auto-generation of field names
+- ✅ Metadata enrichment utility
 
 ### Not Implemented (Out of Scope):
 - ❌ Question dependencies (separate feature)
-- ❌ PDF metadata tags (separate feature)
 - ❌ Page drag-and-drop reordering
 - ❌ Detection override UI
+- ❌ Manual metadata editing
 
 ---
 
