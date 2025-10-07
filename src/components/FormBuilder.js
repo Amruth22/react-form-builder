@@ -164,6 +164,50 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     onFormDataChange(newFormData);
   }, [formData, selectedPageIndex, onFormDataChange]);
 
+  const handleAddPage = useCallback(() => {
+    const newPage = {
+      title: `Page ${formData.pages.length + 1}`,
+      page_number: formData.pages.length + 1,
+      sections: [
+        {
+          title: 'New Section',
+          groups: [
+            {
+              title: 'New Group',
+              repeatable: false,
+              questions: []
+            }
+          ]
+        }
+      ]
+    };
+
+    const newFormData = JSON.parse(JSON.stringify(formData));
+    newFormData.pages.push(newPage);
+
+    onFormDataChange(newFormData);
+    setSelectedPageIndex(newFormData.pages.length - 1);
+  }, [formData, onFormDataChange]);
+
+  const handleDeletePage = useCallback((pageIndex) => {
+    if (formData.pages.length <= 1) {
+      alert('Cannot delete the last page');
+      return;
+    }
+
+    if (!window.confirm('Delete this page and all its content?')) return;
+
+    const newFormData = JSON.parse(JSON.stringify(formData));
+    newFormData.pages.splice(pageIndex, 1);
+
+    // Adjust selected page index
+    if (selectedPageIndex >= newFormData.pages.length) {
+      setSelectedPageIndex(newFormData.pages.length - 1);
+    }
+
+    onFormDataChange(newFormData);
+  }, [formData, selectedPageIndex, onFormDataChange]);
+
   const handleAddGroup = useCallback((sectionIndex) => {
     const newGroup = {
       title: 'New Group',
@@ -263,6 +307,14 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
           </div>
           <div className="flex items-center space-x-3">
             <button
+              onClick={handleAddPage}
+              className="btn-secondary flex items-center space-x-2"
+              title="Add new page"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Page</span>
+            </button>
+            <button
               onClick={handleExportJson}
               className="btn-secondary flex items-center space-x-2"
             >
@@ -282,28 +334,54 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar - Pages */}
-        {formData.pages && formData.pages.length > 1 && (
+        {formData.pages && formData.pages.length >= 1 && (
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-24">
-              <h3 className="font-semibold text-gray-900 mb-4">Pages</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900">Pages</h3>
+                <button
+                  onClick={handleAddPage}
+                  className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                  title="Add new page"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
               <div className="space-y-2">
                 {formData.pages.map((page, index) => (
-                  <button
+                  <div
                     key={index}
-                    onClick={() => setSelectedPageIndex(index)}
                     className={`
-                      w-full text-left px-3 py-2 rounded-lg transition-colors duration-200
+                      group relative rounded-lg transition-colors duration-200
                       ${selectedPageIndex === index
-                        ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'bg-primary-100 border border-primary-200'
+                        : 'hover:bg-gray-100 border border-transparent'
                       }
                     `}
                   >
-                    <div className="font-medium">{page.title || `Page ${page.page_number || index + 1}`}</div>
-                    <div className="text-sm opacity-75">
-                      {page.sections?.length || 0} sections
-                    </div>
-                  </button>
+                    <button
+                      onClick={() => setSelectedPageIndex(index)}
+                      className="w-full text-left px-3 py-2"
+                    >
+                      <div className={`font-medium ${
+                        selectedPageIndex === index ? 'text-primary-700' : 'text-gray-700'
+                      }`}>
+                        {page.title || `Page ${page.page_number || index + 1}`}
+                      </div>
+                      <div className="text-sm opacity-75">
+                        {page.sections?.length || 0} sections
+                      </div>
+                    </button>
+                    {formData.pages.length > 1 && (
+                      <button
+                        onClick={() => handleDeletePage(index)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete page"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -311,17 +389,17 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
         )}
 
         {/* Main Content */}
-        <div className={formData.pages && formData.pages.length > 1 ? 'lg:col-span-3' : 'lg:col-span-4'}>
+        <div className={formData.pages && formData.pages.length >= 1 ? 'lg:col-span-3' : 'lg:col-span-4'}>
           <div className="bg-white rounded-lg border border-gray-200">
             {/* Page Header */}
-            <div className="border-b border-gray-200 p-6">
+            <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {currentPage?.title || `Page ${currentPage?.page_number || selectedPageIndex + 1}`}
                 </h2>
                 <button
                   onClick={handleAddSection}
-                  className="btn-secondary flex items-center space-x-2"
+                  className="btn-primary flex items-center space-x-2 shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Section</span>
