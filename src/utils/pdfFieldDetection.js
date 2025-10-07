@@ -112,7 +112,7 @@ export const applySmartFieldDetection = (formData) => {
   
   const processedData = JSON.parse(JSON.stringify(formData)); // Deep clone
   
-  processedData.pages.forEach(page => {
+  processedData.pages.forEach((page, pageIndex) => {
     if (!page.sections) return;
     
     page.sections.forEach(section => {
@@ -122,22 +122,32 @@ export const applySmartFieldDetection = (formData) => {
         if (!group.questions) return;
         
         group.questions.forEach(question => {
-          // Only process checkbox/radio type questions
+          // Initialize PDF metadata if not present
+          if (!question.pdf_metadata) {
+            question.pdf_metadata = {};
+          }
+          
+          // Add page number if not present
+          if (!question.pdf_metadata.page) {
+            question.pdf_metadata.page = page.page_number || pageIndex + 1;
+          }
+          
+          // Only process checkbox/radio type questions for detection
           if (question.answer_type === 'checkbox' || question.answer_type === 'radio') {
+            const originalType = question.answer_type;
+            
             const detectedType = determineFieldType({
               question: question.question,
               options: question.options,
               symbol: question.pdf_metadata?.symbol,
-              originalType: question.answer_type
+              originalType: originalType
             });
             
+            // Update answer type
             question.answer_type = detectedType;
             
             // Add detection metadata
-            if (!question.pdf_metadata) {
-              question.pdf_metadata = {};
-            }
-            question.pdf_metadata.original_type = question.answer_type;
+            question.pdf_metadata.original_type = originalType;
             question.pdf_metadata.detected_type = detectedType;
             question.pdf_metadata.detection_applied = true;
           }
@@ -204,8 +214,58 @@ export const analyzeFieldDetection = (fieldData) => {
   return analysis;
 };
 
+/**
+ * Add PDF metadata to questions from raw PDF extraction data
+ * Call this before applySmartFieldDetection
+ */
+export const enrichWithPdfMetadata = (formData, pdfExtractionData) => {
+  if (!formData || !formData.pages) return formData;
+  
+  const enrichedData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  
+  enrichedData.pages.forEach((page, pageIndex) => {
+    if (!page.sections) return;
+    
+    page.sections.forEach(section => {
+      if (!section.groups) return;
+      
+      section.groups.forEach(group => {
+        if (!group.questions) return;
+        
+        group.questions.forEach((question, qIndex) => {
+          // Initialize metadata
+          if (!question.pdf_metadata) {
+            question.pdf_metadata = {};
+          }
+          
+          // Add basic metadata
+          question.pdf_metadata.page = page.page_number || pageIndex + 1;
+          
+          // Generate field name if not present
+          if (!question.pdf_metadata.field_name) {
+            const fieldName = question.question
+              .toLowerCase()
+              .replace(/[^a-z0-9\s]/g, '')
+              .replace(/\s+/g, '_')
+              .substring(0, 50);
+            question.pdf_metadata.field_name = fieldName || `field_${pageIndex}_${qIndex}`;
+          }
+          
+          // Add extraction timestamp
+          if (!question.pdf_metadata.extracted_at) {
+            question.pdf_metadata.extracted_at = new Date().toISOString();
+          }
+        });
+      });
+    });
+  });
+  
+  return enrichedData;
+};
+
 export default {
   determineFieldType,
   applySmartFieldDetection,
-  analyzeFieldDetection
+  analyzeFieldDetection,
+  enrichWithPdfMetadata
 };
