@@ -13,6 +13,7 @@
 #### What's New:
 - ✅ **Add New Pages**: Create pages dynamically from the UI
 - ✅ **Delete Pages**: Remove pages with confirmation (minimum 1 page required)
+- ✅ **Reorder Pages**: Drag-and-drop pages to reorder them
 - ✅ **Enhanced Sidebar**: Always visible page sidebar with quick actions
 - ✅ **Auto-Navigation**: Automatically switches to newly created page
 
@@ -49,6 +50,8 @@
 #### Functions Added:
 - `handleAddPage()` - Creates new page with default structure
 - `handleDeletePage(pageIndex)` - Deletes page with validation
+- `handleDragEnd()` - Enhanced to handle page reordering
+- Smart index tracking when pages are moved
 
 ---
 
