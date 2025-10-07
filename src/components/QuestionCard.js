@@ -12,7 +12,9 @@ import {
   CheckSquare, 
   Circle, 
   FileText,
-  MessageSquare
+  MessageSquare,
+  FileType,
+  MapPin
 } from 'lucide-react';
 
 const QuestionCard = ({
@@ -140,9 +142,32 @@ const QuestionCard = ({
                 </div>
               )}
 
+              {/* PDF Metadata Tags */}
+              {question.pdf_metadata && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {question.pdf_metadata.field_name && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <FileType className="w-3 h-3 mr-1" />
+                      PDF: {question.pdf_metadata.field_name}
+                    </span>
+                  )}
+                  {question.pdf_metadata.page && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      Page {question.pdf_metadata.page}
+                    </span>
+                  )}
+                  {question.pdf_metadata.detected_type && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                      ✓ Auto-detected: {question.pdf_metadata.detected_type}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Validation Info */}
               {question.validation && Object.keys(question.validation).length > 0 && (
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 mt-2">
                   <span className="font-medium">Validation:</span> {question.validation.type || 'Custom'}
                 </div>
               )}

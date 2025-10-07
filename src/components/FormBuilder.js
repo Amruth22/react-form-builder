@@ -39,7 +39,27 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
     const { source, destination, type } = result;
 
-    // Parse droppable IDs
+    const newFormData = JSON.parse(JSON.stringify(formData)); // Deep clone
+
+    // Handle page reordering
+    if (type === 'page') {
+      const [movedPage] = newFormData.pages.splice(source.index, 1);
+      newFormData.pages.splice(destination.index, 0, movedPage);
+      
+      // Update selected page index to follow the moved page
+      if (selectedPageIndex === source.index) {
+        setSelectedPageIndex(destination.index);
+      } else if (selectedPageIndex > source.index && selectedPageIndex <= destination.index) {
+        setSelectedPageIndex(selectedPageIndex - 1);
+      } else if (selectedPageIndex < source.index && selectedPageIndex >= destination.index) {
+        setSelectedPageIndex(selectedPageIndex + 1);
+      }
+      
+      onFormDataChange(newFormData);
+      return;
+    }
+
+    // Parse droppable IDs for other types
     const parseDroppableId = (id) => {
       const parts = id.split('-');
       return {
@@ -51,8 +71,6 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
     const sourcePath = parseDroppableId(source.droppableId);
     const destPath = parseDroppableId(destination.droppableId);
-
-    const newFormData = JSON.parse(JSON.stringify(formData)); // Deep clone
 
     if (type === 'question') {
       // Move question
@@ -104,7 +122,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     }
 
     onFormDataChange(newFormData);
-  }, [formData, onFormDataChange]);
+  }, [formData, onFormDataChange, selectedPageIndex]);
 
   const handleQuestionUpdate = useCallback((path, updatedQuestion) => {
     const newFormData = JSON.parse(JSON.stringify(formData));
@@ -127,7 +145,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       .questions.splice(path.questionIndex, 1);
 
     onFormDataChange(newFormData);
-  }, [formData, onFormDataChange]);
+  }, [formData, onFormDataChange, selectedPageIndex]);
 
   const handleAddQuestion = useCallback((pageIndex, sectionIndex, groupIndex) => {
     const newQuestion = {
@@ -144,7 +162,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       .questions.push(newQuestion);
 
     onFormDataChange(newFormData);
-  }, [formData, onFormDataChange]);
+  }, [formData, onFormDataChange, selectedPageIndex]);
 
   const handleAddSection = useCallback(() => {
     const newSection = {
@@ -160,6 +178,50 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
     const newFormData = JSON.parse(JSON.stringify(formData));
     newFormData.pages[selectedPageIndex].sections.push(newSection);
+
+    onFormDataChange(newFormData);
+  }, [formData, selectedPageIndex, onFormDataChange]);
+
+  const handleAddPage = useCallback(() => {
+    const newPage = {
+      title: `Page ${formData.pages.length + 1}`,
+      page_number: formData.pages.length + 1,
+      sections: [
+        {
+          title: 'New Section',
+          groups: [
+            {
+              title: 'New Group',
+              repeatable: false,
+              questions: []
+            }
+          ]
+        }
+      ]
+    };
+
+    const newFormData = JSON.parse(JSON.stringify(formData));
+    newFormData.pages.push(newPage);
+
+    onFormDataChange(newFormData);
+    setSelectedPageIndex(newFormData.pages.length - 1);
+  }, [formData, onFormDataChange]);
+
+  const handleDeletePage = useCallback((pageIndex) => {
+    if (formData.pages.length <= 1) {
+      alert('Cannot delete the last page');
+      return;
+    }
+
+    if (!window.confirm('Delete this page and all its content?')) return;
+
+    const newFormData = JSON.parse(JSON.stringify(formData));
+    newFormData.pages.splice(pageIndex, 1);
+
+    // Adjust selected page index
+    if (selectedPageIndex >= newFormData.pages.length) {
+      setSelectedPageIndex(newFormData.pages.length - 1);
+    }
 
     onFormDataChange(newFormData);
   }, [formData, selectedPageIndex, onFormDataChange]);
@@ -208,7 +270,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     newFormData.pages[pageIndex].sections[sectionIndex].groups.splice(groupIndex, 1);
 
     onFormDataChange(newFormData);
-  }, [formData, onFormDataChange]);
+  }, [formData, onFormDataChange, selectedPageIndex]);
 
   const handleDeleteSection = useCallback((pageIndex, sectionIndex) => {
     if (!window.confirm('Delete this section and all its groups/questions?')) return;
@@ -217,7 +279,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     newFormData.pages[pageIndex].sections.splice(sectionIndex, 1);
 
     onFormDataChange(newFormData);
-  }, [formData, onFormDataChange]);
+  }, [formData, onFormDataChange, selectedPageIndex]);
 
   const handleExport = useCallback(() => {
     const htmlContent = HtmlExporter.generateHtml(formData);
@@ -263,6 +325,14 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
           </div>
           <div className="flex items-center space-x-3">
             <button
+              onClick={handleAddPage}
+              className="btn-secondary flex items-center space-x-2"
+              title="Add new page"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Page</span>
+            </button>
+            <button
               onClick={handleExportJson}
               className="btn-secondary flex items-center space-x-2"
             >
@@ -282,46 +352,103 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar - Pages */}
-        {formData.pages && formData.pages.length > 1 && (
+        {formData.pages && formData.pages.length >= 1 && (
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-24">
-              <h3 className="font-semibold text-gray-900 mb-4">Pages</h3>
-              <div className="space-y-2">
-                {formData.pages.map((page, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedPageIndex(index)}
-                    className={`
-                      w-full text-left px-3 py-2 rounded-lg transition-colors duration-200
-                      ${selectedPageIndex === index
-                        ? 'bg-primary-100 text-primary-700 border border-primary-200'
-                        : 'hover:bg-gray-100 text-gray-700'
-                      }
-                    `}
-                  >
-                    <div className="font-medium">{page.title || `Page ${page.page_number || index + 1}`}</div>
-                    <div className="text-sm opacity-75">
-                      {page.sections?.length || 0} sections
-                    </div>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900">Pages</h3>
+                <button
+                  onClick={handleAddPage}
+                  className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                  title="Add new page"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
               </div>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="pages-sidebar" type="page">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-2"
+                    >
+                      {formData.pages.map((page, index) => (
+                        <Draggable
+                          key={`page-${index}`}
+                          draggableId={`page-${index}`}
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`
+                                group relative rounded-lg transition-all duration-200
+                                ${snapshot.isDragging 
+                                  ? 'shadow-lg scale-105 bg-primary-100 border-primary-300' 
+                                  : selectedPageIndex === index
+                                    ? 'bg-primary-100 border border-primary-200'
+                                    : 'hover:bg-gray-100 border border-transparent'
+                                }
+                              `}
+                            >
+                              <div className="flex items-center">
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="px-2 py-3 cursor-grab active:cursor-grabbing"
+                                  title="Drag to reorder"
+                                >
+                                  <GripVertical className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                                </div>
+                                <button
+                                  onClick={() => setSelectedPageIndex(index)}
+                                  className="flex-1 text-left py-2 pr-3"
+                                >
+                                  <div className={`font-medium ${
+                                    selectedPageIndex === index ? 'text-primary-700' : 'text-gray-700'
+                                  }`}>
+                                    {page.title || `Page ${page.page_number || index + 1}`}
+                                  </div>
+                                  <div className="text-sm opacity-75">
+                                    {page.sections?.length || 0} sections
+                                  </div>
+                                </button>
+                                {formData.pages.length > 1 && (
+                                  <button
+                                    onClick={() => handleDeletePage(index)}
+                                    className="p-2 mr-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Delete page"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </div>
           </div>
         )}
 
         {/* Main Content */}
-        <div className={formData.pages && formData.pages.length > 1 ? 'lg:col-span-3' : 'lg:col-span-4'}>
+        <div className={formData.pages && formData.pages.length >= 1 ? 'lg:col-span-3' : 'lg:col-span-4'}>
           <div className="bg-white rounded-lg border border-gray-200">
             {/* Page Header */}
-            <div className="border-b border-gray-200 p-6">
+            <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-blue-50 to-indigo-50">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {currentPage?.title || `Page ${currentPage?.page_number || selectedPageIndex + 1}`}
                 </h2>
                 <button
                   onClick={handleAddSection}
-                  className="btn-secondary flex items-center space-x-2"
+                  className="btn-primary flex items-center space-x-2 shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Section</span>
