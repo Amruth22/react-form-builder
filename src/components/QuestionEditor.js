@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle, FileType, MapPin, Info } from 'lucide-react';
 
 const US_STATES = [
   'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
@@ -172,6 +172,64 @@ const QuestionEditor = ({ question, onSave, onCancel }) => {
 
         {/* Content */}
         <div className="p-6 space-y-6 max-h-[calc(90vh-200px)] overflow-y-auto">
+          {/* PDF Metadata Info (Read-only) */}
+          {question.pdf_metadata && (
+            <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-indigo-900 mb-3">PDF Source Information</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {question.pdf_metadata.field_name && (
+                      <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <FileType className="w-4 h-4 text-indigo-600" />
+                          <span className="text-xs font-medium text-gray-600">PDF Field Name</span>
+                        </div>
+                        <p className="text-sm font-mono text-gray-900">{question.pdf_metadata.field_name}</p>
+                      </div>
+                    )}
+                    {question.pdf_metadata.page && (
+                      <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <MapPin className="w-4 h-4 text-indigo-600" />
+                          <span className="text-xs font-medium text-gray-600">Source Page</span>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-900">Page {question.pdf_metadata.page}</p>
+                      </div>
+                    )}
+                    {question.pdf_metadata.original_type && (
+                      <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xs font-medium text-gray-600">Original Type</span>
+                        </div>
+                        <p className="text-sm text-gray-900 capitalize">{question.pdf_metadata.original_type}</p>
+                      </div>
+                    )}
+                    {question.pdf_metadata.detected_type && (
+                      <div className="bg-white rounded-lg p-3 border border-green-100">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xs font-medium text-gray-600">Auto-Detected</span>
+                        </div>
+                        <p className="text-sm font-semibold text-green-700 capitalize">
+                          ✓ {question.pdf_metadata.detected_type}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {question.pdf_metadata.coordinates && (
+                    <div className="mt-3 text-xs text-indigo-700">
+                      <span className="font-medium">Position:</span> X: {question.pdf_metadata.coordinates.x}, Y: {question.pdf_metadata.coordinates.y}
+                    </div>
+                  )}
+                  <p className="text-xs text-indigo-600 mt-3">
+                    💡 This information is extracted from the PDF and cannot be edited.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Question Text */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
