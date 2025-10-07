@@ -291,6 +291,9 @@ class HtmlExporter {
             margin-top: 10px;
             padding: 10px;
             background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
         
         .multi-person-question {
             display: flex;
@@ -335,10 +338,6 @@ class HtmlExporter {
         .person-options input[type="radio"] {
             width: auto;
             margin: 0;
-        }
-
-            border-radius: 6px;
-            font-size: 0.875rem;
         }
         
         .actions {
@@ -428,6 +427,13 @@ class HtmlExporter {
             .btn {
                 margin: 5px 0;
             }
+            .person-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .person-label {
+                min-width: auto;
+            }
         }
     </style>
 </head>
@@ -446,9 +452,9 @@ class HtmlExporter {
         </div>
         
         <div class="actions">
-            <button type="button" class="btn btn-primary" onclick="exportToJSON()">📤 Export to JSON</button>
-            <button type="button" class="btn btn-secondary" onclick="copyJSON()">📋 Copy JSON</button>
-            <button type="button" class="btn btn-secondary" onclick="clearForm()">🗑️ Clear Form</button>
+            <button type="button" class="btn btn-primary" onclick="exportToJSON()">Export to JSON</button>
+            <button type="button" class="btn btn-secondary" onclick="copyJSON()">Copy JSON</button>
+            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
             
             <div class="json-output">
                 <h3>JSON Output</h3>
@@ -497,7 +503,7 @@ class HtmlExporter {
     return sections.map((section, sectionIndex) => `
       <div class="section">
         <div class="section-header">
-          📋 ${section.title || `Section ${sectionIndex + 1}`}
+          ${section.title || `Section ${sectionIndex + 1}`}
         </div>
         <div class="section-content">
           ${this.generateGroups(section.groups || [], pageIndex, sectionIndex)}
@@ -514,12 +520,12 @@ class HtmlExporter {
         <div class="group" id="${groupId}">
           <div class="group-header">
             <div class="group-title">
-              📁 ${group.title || `Group ${groupIndex + 1}`}
+              ${group.title || `Group ${groupIndex + 1}`}
               ${group.repeatable ? '<span class="repeatable-badge">Repeatable</span>' : ''}
             </div>
             ${group.repeatable ? `
               <button type="button" class="add-instance-btn" onclick="addGroupInstance('${groupId}', ${pageIndex}, ${sectionIndex}, ${groupIndex})">
-                ➕ Add
+                Add
               </button>
             ` : ''}
           </div>
@@ -540,7 +546,7 @@ class HtmlExporter {
           <div class="instance-header">
             <span class="instance-number">Instance ${instanceIndex + 1}</span>
             <button type="button" class="remove-instance-btn" onclick="removeGroupInstance('${instanceId}')">
-              ❌ Remove
+              Remove
             </button>
           </div>
         ` : ''}
@@ -554,7 +560,6 @@ class HtmlExporter {
       const fieldId = `field_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}_${instanceIndex}`;
       const questionId = question.id || `q_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}`;
 
-      // Build conditional visibility attributes
       const conditionalAttrs = question.parent_question_id
         ? `data-parent="${question.parent_question_id}" data-show-when='${JSON.stringify(question.show_when || null)}' style="display: none;"`
         : '';
@@ -593,9 +598,22 @@ class HtmlExporter {
           inputHtml = `
             <select 
               id="${fieldId}" 
+              name="${fieldId}" 
+              class="form-control" 
+              ${required}
+              onchange="validateField('${fieldId}')"
+            >
+              <option value="">Select an option...</option>
+              ${(question.options || []).map(option => {
+                const value = typeof option === 'string' ? option : option.value || option.label || '';
+                const label = typeof option === 'string' ? option : option.label || option.value || '';
+                return `<option value="${this.escapeHtml(value)}">${this.escapeHtml(label)}</option>`;
+              }).join('')}
+            </select>
+          `;
+          break;
 
         case 'radio_multi_person':
-          // Multi-person question where each person answers independently
           const appliesTo = question.applies_to || [];
           inputHtml = `
             <div class="multi-person-question">
@@ -625,21 +643,6 @@ class HtmlExporter {
                 </div>
               `).join('')}
             </div>
-          `;
-          break;
-
-              name="${fieldId}" 
-              class="form-control" 
-              ${required}
-              onchange="validateField('${fieldId}')"
-            >
-              <option value="">Select an option...</option>
-              ${(question.options || []).map(option => {
-                const value = typeof option === 'string' ? option : option.value || option.label || '';
-                const label = typeof option === 'string' ? option : option.label || option.value || '';
-                return `<option value="${this.escapeHtml(value)}">${this.escapeHtml(label)}</option>`;
-              }).join('')}
-            </select>
           `;
           break;
 
@@ -733,7 +736,7 @@ class HtmlExporter {
                 ${required}
               >
               <label for="${fieldId}" class="file-upload-label">
-                📎 Click to upload file
+                Click to upload file
               </label>
               <div id="${fieldId}_info" class="file-info" style="display: none;"></div>
             </div>
@@ -761,7 +764,6 @@ class HtmlExporter {
           `;
       }
 
-      // Generate sub-questions HTML if they exist
       let subQuestionsHtml = '';
       if (question.sub_questions && question.sub_questions.length > 0) {
         subQuestionsHtml = `
@@ -827,9 +829,7 @@ class HtmlExporter {
         document.querySelectorAll('.page-btn')[pageIndex].classList.add('active');
       }
 
-      // Conditional question visibility
       function checkQuestionVisibility(parentQuestionId, value) {
-        // Find all questions that depend on this parent
         const dependentQuestions = document.querySelectorAll('[data-parent="' + parentQuestionId + '"]');
 
         dependentQuestions.forEach(questionDiv => {
@@ -839,19 +839,14 @@ class HtmlExporter {
           let shouldShow = false;
 
           if (!showWhen) {
-            // No condition specified, show if parent has any value
             shouldShow = value && value !== '';
           } else if (Array.isArray(showWhen)) {
-            // Multiple valid values
             if (Array.isArray(value)) {
-              // Parent is checkbox (multiple values)
               shouldShow = showWhen.some(val => value.includes(val));
             } else {
-              // Parent is single value
               shouldShow = showWhen.includes(value);
             }
           } else {
-            // Single valid value
             if (Array.isArray(value)) {
               shouldShow = value.includes(showWhen);
             } else {
@@ -863,7 +858,6 @@ class HtmlExporter {
         });
       }
 
-      // Add event listeners for all questions that have dependents
       function initConditionalQuestions() {
         const allQuestions = document.querySelectorAll('[data-parent]');
         const parentIds = new Set();
@@ -874,11 +868,9 @@ class HtmlExporter {
         });
 
         parentIds.forEach(parentId => {
-          // Find the parent question input element
           const parentElement = document.querySelector('#question_' + parentId);
           if (!parentElement) return;
 
-          // Add listeners based on input type
           const radios = parentElement.querySelectorAll('input[type="radio"]');
           const checkboxes = parentElement.querySelectorAll('input[type="checkbox"]');
           const selects = parentElement.querySelectorAll('select');
@@ -923,7 +915,6 @@ class HtmlExporter {
         });
       }
 
-      // Initialize on page load
       document.addEventListener('DOMContentLoaded', initConditionalQuestions);
       
       function addGroupInstance(groupId, pageIndex, sectionIndex, groupIndex) {
@@ -935,7 +926,6 @@ class HtmlExporter {
         const instanceIndex = groupInstanceCounters[groupId] - 1;
         const instancesContainer = document.getElementById(groupId + '_instances');
         
-        // Get the group data from the page structure
         const group = ${JSON.stringify(pages)}.pages[pageIndex].sections[sectionIndex].groups[groupIndex];
         
         const instanceHtml = createGroupInstance(group, pageIndex, sectionIndex, groupIndex, instanceIndex, true);
@@ -950,11 +940,10 @@ class HtmlExporter {
         if (isRepeatable && instanceIndex > 0) {
           html += '<div class="instance-header">';
           html += '<span class="instance-number">Instance ' + (instanceIndex + 1) + '</span>';
-          html += '<button type="button" class="remove-instance-btn" onclick="removeGroupInstance(\\'' + instanceId + '\\')">❌ Remove</button>';
+          html += '<button type="button" class="remove-instance-btn" onclick="removeGroupInstance(\\'' + instanceId + '\\')">Remove</button>';
           html += '</div>';
         }
         
-        // Generate questions (simplified - you'd need to replicate the full logic)
         group.questions.forEach((question, qIndex) => {
           const fieldId = 'field_' + pageIndex + '_' + sectionIndex + '_' + groupIndex + '_' + qIndex + '_' + instanceIndex;
           
@@ -971,13 +960,16 @@ class HtmlExporter {
       }
       
       function removeGroupInstance(instanceId) {
+        const instance = document.getElementById(instanceId);
+        if (instance) {
+          instance.remove();
+        }
+      }
       
       function validateMultiPersonField(fieldId, personCount) {
-        // Validate that all persons have answered
         const errorDiv = document.getElementById(fieldId + '_error');
         if (!errorDiv) return true;
         
-        // Count how many persons have answered
         let answeredCount = 0;
         const personFields = document.querySelectorAll('[name^="' + fieldId + '_"]');
         const uniqueNames = new Set();
@@ -988,7 +980,6 @@ class HtmlExporter {
           if (selected) answeredCount++;
         });
         
-        // Check if all persons answered
         if (answeredCount < personCount) {
           errorDiv.textContent = 'All persons must answer this question';
           errorDiv.style.display = 'block';
@@ -998,22 +989,14 @@ class HtmlExporter {
           return true;
         }
       }
-
-        const instance = document.getElementById(instanceId);
-        if (instance) {
-          instance.remove();
-        }
-      }
       
       function handleRadioChange(fieldId, optionId, requiresInput) {
-        // Hide all conditional inputs for this field
         const allConditionals = document.querySelectorAll('[id^="' + fieldId + '_conditional_"]');
         allConditionals.forEach(input => {
           const wrapper = input.parentElement;
           if (wrapper) wrapper.style.display = 'none';
         });
         
-        // Show conditional input if required
         if (requiresInput) {
           const optionIndex = optionId.split('_').pop();
           const conditionalWrapper = document.getElementById(fieldId + '_conditional_' + optionIndex + '_wrapper');
@@ -1044,7 +1027,7 @@ class HtmlExporter {
         
         if (input.files && input.files[0]) {
           const file = input.files[0];
-          infoDiv.innerHTML = '📄 ' + file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)';
+          infoDiv.innerHTML = file.name + ' (' + (file.size / 1024).toFixed(2) + ' KB)';
           infoDiv.style.display = 'block';
         }
         
@@ -1060,7 +1043,6 @@ class HtmlExporter {
         field.classList.remove('error');
         errorDiv.style.display = 'none';
         
-        // Required validation
         if (field.hasAttribute('required')) {
           if (!field.value || field.value.trim() === '') {
             field.classList.add('error');
@@ -1068,6 +1050,49 @@ class HtmlExporter {
             errorDiv.style.display = 'block';
             return false;
           }
+        }
+        
+        if (field.hasAttribute('pattern') && field.value) {
+          const pattern = new RegExp(field.getAttribute('pattern'));
+          if (!pattern.test(field.value)) {
+            field.classList.add('error');
+            errorDiv.textContent = 'Invalid format';
+            errorDiv.style.display = 'block';
+            return false;
+          }
+        }
+        
+        return true;
+      }
+      
+      function validateForm() {
+        let isValid = true;
+        const errors = [];
+        
+        document.querySelectorAll('.form-control').forEach(field => {
+          if (field.offsetParent !== null) {
+            if (!validateField(field.id)) {
+              isValid = false;
+              errors.push(field.id);
+            }
+          }
+        });
+        
+        const validationSummary = document.getElementById('validationSummary');
+        const successMessage = document.getElementById('successMessage');
+        
+        if (!isValid) {
+          validationSummary.className = 'validation-summary';
+          validationSummary.innerHTML = 'Please fill in ' + errors.length + ' required field(s)';
+          validationSummary.style.display = 'block';
+          successMessage.style.display = 'none';
+        } else {
+          validationSummary.style.display = 'none';
+        }
+        
+        return isValid;
+      }
+      
       function exportToJSON() {
         if (!validateForm()) {
           alert('Please fill in all required fields before exporting.');
@@ -1084,9 +1109,7 @@ class HtmlExporter {
           } 
         };
         
-        // Organize data hierarchically
         for (let [key, value] of formData.entries()) {
-          // Parse field key to extract structure
           const parts = key.split('_');
           if (parts[0] === 'field') {
             const pageIndex = parts[1];
@@ -1094,7 +1117,7 @@ class HtmlExporter {
             const groupIndex = parts[3];
             const questionIndex = parts[4];
             const instanceIndex = parts[5];
-            const person = parts[6]; // For multi-person questions
+            const person = parts[6];
             
             const pageKey = 'page_' + pageIndex;
             if (!jsonData.formData[pageKey]) {
@@ -1118,7 +1141,6 @@ class HtmlExporter {
             
             const questionKey = 'question_' + questionIndex;
             
-            // Handle multi-person questions
             if (person) {
               if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey]) {
                 jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey] = {};
@@ -1134,70 +1156,7 @@ class HtmlExporter {
         
         const successMessage = document.getElementById('successMessage');
         successMessage.className = 'success-message';
-        successMessage.innerHTML = '\u2705 Form completed successfully!';
-        successMessage.style.display = 'block';
-      }
-
-        
-        return isValid;
-      }
-      
-      function exportToJSON() {
-        if (!validateForm()) {
-          alert('Please fill in all required fields before exporting.');
-          return;
-        }
-        
-        const form = document.getElementById('mainForm');
-        const formData = new FormData(form);
-        const jsonData = { 
-          formData: {}, 
-          metadata: { 
-            exportedAt: new Date().toISOString(),
-            totalPages: ${pages.length}
-          } 
-        };
-        
-        // Organize data hierarchically
-        for (let [key, value] of formData.entries()) {
-          // Parse field key to extract structure
-          const parts = key.split('_');
-          if (parts[0] === 'field') {
-            const pageIndex = parts[1];
-            const sectionIndex = parts[2];
-            const groupIndex = parts[3];
-            const questionIndex = parts[4];
-            const instanceIndex = parts[5];
-            
-            const pageKey = 'page_' + pageIndex;
-            if (!jsonData.formData[pageKey]) {
-              jsonData.formData[pageKey] = { sections: {} };
-            }
-            
-            const sectionKey = 'section_' + sectionIndex;
-            if (!jsonData.formData[pageKey].sections[sectionKey]) {
-              jsonData.formData[pageKey].sections[sectionKey] = { groups: {} };
-            }
-            
-            const groupKey = 'group_' + groupIndex;
-            if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey]) {
-              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey] = { instances: {} };
-            }
-            
-            const instanceKey = 'instance_' + instanceIndex;
-            if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey]) {
-              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey] = {};
-            }
-            
-            jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey]['question_' + questionIndex] = value;
-          }
-        }
-        
-        document.getElementById('jsonOutput').value = JSON.stringify(jsonData, null, 2);
-        
-        const successMessage = document.getElementById('successMessage');
-        successMessage.className = 'success-message';
-        successMessage.innerHTML = '✅ Form completed successfully!';
+        successMessage.innerHTML = 'Form completed successfully!';
         successMessage.style.display = 'block';
       }
       
@@ -1219,7 +1178,6 @@ class HtmlExporter {
           document.getElementById('validationSummary').style.display = 'none';
           document.getElementById('successMessage').style.display = 'none';
           
-          // Reset all error states
           document.querySelectorAll('.form-control').forEach(field => {
             field.classList.remove('error');
           });
@@ -1227,12 +1185,10 @@ class HtmlExporter {
             error.style.display = 'none';
           });
           
-          // Reset file upload displays
           document.querySelectorAll('.file-info').forEach(info => {
             info.style.display = 'none';
           });
           
-          // Reset conditional inputs
           document.querySelectorAll('.conditional-input').forEach(input => {
             input.style.display = 'none';
           });
