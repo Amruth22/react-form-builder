@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
 import API_CONFIG from '../config/api';
-import { applySmartFieldDetection } from '../utils/pdfFieldDetection';
+import { applySmartFieldDetection, enrichWithPdfMetadata } from '../utils/pdfFieldDetection';
 
 const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -84,9 +84,13 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
 
       const jsonData = await jsonResponse.json();
 
+      // Enrich with PDF metadata
+      setProgress('Adding PDF metadata...');
+      const enrichedData = enrichWithPdfMetadata(jsonData, result.data);
+
       // Apply smart field detection
       setProgress('Applying smart field detection...');
-      const processedData = applySmartFieldDetection(jsonData);
+      const processedData = applySmartFieldDetection(enrichedData);
 
       // Success!
       setSuccess({
