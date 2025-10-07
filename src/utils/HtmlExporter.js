@@ -971,6 +971,34 @@ class HtmlExporter {
       }
       
       function removeGroupInstance(instanceId) {
+      
+      function validateMultiPersonField(fieldId, personCount) {
+        // Validate that all persons have answered
+        const errorDiv = document.getElementById(fieldId + '_error');
+        if (!errorDiv) return true;
+        
+        // Count how many persons have answered
+        let answeredCount = 0;
+        const personFields = document.querySelectorAll('[name^="' + fieldId + '_"]');
+        const uniqueNames = new Set();
+        personFields.forEach(field => uniqueNames.add(field.name));
+        
+        uniqueNames.forEach(name => {
+          const selected = document.querySelector('input[name="' + name + '"]:checked');
+          if (selected) answeredCount++;
+        });
+        
+        // Check if all persons answered
+        if (answeredCount < personCount) {
+          errorDiv.textContent = 'All persons must answer this question';
+          errorDiv.style.display = 'block';
+          return false;
+        } else {
+          errorDiv.style.display = 'none';
+          return true;
+        }
+      }
+
         const instance = document.getElementById(instanceId);
         if (instance) {
           instance.remove();
