@@ -593,6 +593,41 @@ class HtmlExporter {
           inputHtml = `
             <select 
               id="${fieldId}" 
+
+        case 'radio_multi_person':
+          // Multi-person question where each person answers independently
+          const appliesTo = question.applies_to || [];
+          inputHtml = `
+            <div class="multi-person-question">
+              ${appliesTo.map(person => `
+                <div class="person-row">
+                  <span class="person-label">${person.charAt(0).toUpperCase() + person.slice(1)}:</span>
+                  <div class="person-options">
+                    ${(question.options || []).map((option, optIndex) => {
+                      const value = typeof option === 'string' ? option : option.value || option.label || '';
+                      const label = typeof option === 'string' ? option : option.label || option.value || '';
+                      const personFieldId = `${fieldId}_${person}`;
+                      return `
+                        <label>
+                          <input 
+                            type="radio" 
+                            id="${personFieldId}_${optIndex}" 
+                            name="${personFieldId}" 
+                            value="${this.escapeHtml(value)}" 
+                            ${required}
+                            onchange="validateMultiPersonField('${fieldId}', ${appliesTo.length})"
+                          >
+                          <span>${this.escapeHtml(label)}</span>
+                        </label>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          break;
+
               name="${fieldId}" 
               class="form-control" 
               ${required}
