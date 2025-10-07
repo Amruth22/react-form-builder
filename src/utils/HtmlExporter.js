@@ -291,6 +291,52 @@ class HtmlExporter {
             margin-top: 10px;
             padding: 10px;
             background: #f3f4f6;
+        
+        .multi-person-question {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .person-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .person-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #4b5563;
+            text-transform: capitalize;
+        }
+        
+        .person-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .person-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .person-options input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
             border-radius: 6px;
             font-size: 0.875rem;
         }
