@@ -1068,47 +1068,76 @@ class HtmlExporter {
             errorDiv.style.display = 'block';
             return false;
           }
+      function exportToJSON() {
+        if (!validateForm()) {
+          alert('Please fill in all required fields before exporting.');
+          return;
         }
         
-        // Pattern validation
-        if (field.hasAttribute('pattern') && field.value) {
-          const pattern = new RegExp(field.getAttribute('pattern'));
-          if (!pattern.test(field.value)) {
-            field.classList.add('error');
-            errorDiv.textContent = 'Invalid format';
-            errorDiv.style.display = 'block';
-            return false;
-          }
-        }
+        const form = document.getElementById('mainForm');
+        const formData = new FormData(form);
+        const jsonData = { 
+          formData: {}, 
+          metadata: { 
+            exportedAt: new Date().toISOString(),
+            totalPages: ${pages.length}
+          } 
+        };
         
-        return true;
-      }
-      
-      function validateForm() {
-        let isValid = true;
-        const errors = [];
-        
-        // Validate all visible fields
-        document.querySelectorAll('.form-control').forEach(field => {
-          if (field.offsetParent !== null) { // Check if visible
-            if (!validateField(field.id)) {
-              isValid = false;
-              errors.push(field.id);
+        // Organize data hierarchically
+        for (let [key, value] of formData.entries()) {
+          // Parse field key to extract structure
+          const parts = key.split('_');
+          if (parts[0] === 'field') {
+            const pageIndex = parts[1];
+            const sectionIndex = parts[2];
+            const groupIndex = parts[3];
+            const questionIndex = parts[4];
+            const instanceIndex = parts[5];
+            const person = parts[6]; // For multi-person questions
+            
+            const pageKey = 'page_' + pageIndex;
+            if (!jsonData.formData[pageKey]) {
+              jsonData.formData[pageKey] = { sections: {} };
+            }
+            
+            const sectionKey = 'section_' + sectionIndex;
+            if (!jsonData.formData[pageKey].sections[sectionKey]) {
+              jsonData.formData[pageKey].sections[sectionKey] = { groups: {} };
+            }
+            
+            const groupKey = 'group_' + groupIndex;
+            if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey]) {
+              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey] = { instances: {} };
+            }
+            
+            const instanceKey = 'instance_' + instanceIndex;
+            if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey]) {
+              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey] = {};
+            }
+            
+            const questionKey = 'question_' + questionIndex;
+            
+            // Handle multi-person questions
+            if (person) {
+              if (!jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey]) {
+                jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey] = {};
+              }
+              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey][person] = value;
+            } else {
+              jsonData.formData[pageKey].sections[sectionKey].groups[groupKey].instances[instanceKey][questionKey] = value;
             }
           }
-        });
-        
-        const validationSummary = document.getElementById('validationSummary');
-        const successMessage = document.getElementById('successMessage');
-        
-        if (!isValid) {
-          validationSummary.className = 'validation-summary';
-          validationSummary.innerHTML = '⚠️ Please fill in ' + errors.length + ' required field(s)';
-          validationSummary.style.display = 'block';
-          successMessage.style.display = 'none';
-        } else {
-          validationSummary.style.display = 'none';
         }
+        
+        document.getElementById('jsonOutput').value = JSON.stringify(jsonData, null, 2);
+        
+        const successMessage = document.getElementById('successMessage');
+        successMessage.className = 'success-message';
+        successMessage.innerHTML = '\u2705 Form completed successfully!';
+        successMessage.style.display = 'block';
+      }
+
         
         return isValid;
       }
