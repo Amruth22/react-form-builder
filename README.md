@@ -18,6 +18,7 @@ A simple, intuitive drag & drop form builder for JSON-extracted PDF forms. Impor
 - **File Upload Support** - Handle file uploads with preview for images
 - **Advanced Validation** - Min/max length, pattern matching, custom error messages
 - **JSON Export** - Export filled form data as structured hierarchical JSON
+- **Excel Export** - Export form structure to Excel spreadsheet (.xlsx) for analysis and documentation
 - **HTML Export** - Generate clean, responsive HTML forms with all features
 
 ### 🎨 **User Experience**
@@ -117,10 +118,13 @@ See [API_INTEGRATION_GUIDE.md](API_INTEGRATION_GUIDE.md) for detailed setup.
 - **Export test data** as JSON to verify structure
 - **Multi-page navigation** works exactly like the final form
 
-### 4. **Export HTML Form**
-- Click "Export HTML" to generate your final form
-- The HTML file will be downloaded automatically
-- Open the HTML file in any browser to use your form
+### 4. **Export Your Form**
+- **Export HTML** - Generate a standalone HTML form file with all functionality
+- **Export Excel** - Export the form structure to Excel (.xlsx) for documentation and analysis
+  - Includes all questions with their properties, validation rules, and metadata
+  - Separate sheet with document info and statistics
+  - Perfect for sharing with stakeholders or creating documentation
+- **Download JSON** - Export the raw JSON structure for backup or version control
 
 ## 🎯 Supported Question Types
 
@@ -177,6 +181,7 @@ react-form-builder/
 - **@hello-pangea/dnd** - Drag and drop functionality
 - **Lucide React** - Beautiful icons
 - **Tailwind CSS** - Utility-first CSS framework
+- **xlsx** - Excel file generation for export feature
 
 ## 🆕 New Features Explained
 
@@ -370,8 +375,10 @@ npm run build
 
 ### Workflow
 ```
-PDF → PDF Processing App → JSON → Form Builder → HTML Form
+PDF → PDF Processing App → JSON → Form Builder → HTML Form / Excel Export
 ```
+
+See [EXCEL_EXPORT_GUIDE.md](EXCEL_EXPORT_GUIDE.md) for detailed documentation on the Excel export feature.
 
 ## 🐛 Troubleshooting
 

@@ -3,11 +3,12 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Download, Plus, Trash2, Edit3, GripVertical,
   ChevronDown, ChevronRight, Layers, FolderOpen,
-  FileText, Copy
+  FileText, Copy, FileSpreadsheet
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import QuestionEditor from './QuestionEditor';
 import HtmlExporter from '../utils/HtmlExporter';
+import ExcelExporter from '../utils/ExcelExporter';
 import { calculateTotalQuestions } from '../utils/formUtils';
 
 const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
@@ -289,7 +290,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
   const handleExportJson = useCallback(() => {
     // Create a formatted JSON string
     const jsonString = JSON.stringify(formData, null, 2);
-    
+
     // Create blob and download
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -300,6 +301,10 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }, [formData]);
+
+  const handleExportExcel = useCallback(() => {
+    ExcelExporter.exportToExcel(formData);
   }, [formData]);
 
   if (!formData) {
@@ -338,6 +343,14 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
             >
               <FileText className="w-4 h-4" />
               <span>Download JSON</span>
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="btn-secondary flex items-center space-x-2"
+              title="Export form structure to Excel"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Export Excel</span>
             </button>
             <button
               onClick={handleExport}
