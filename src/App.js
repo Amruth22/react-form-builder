@@ -5,13 +5,15 @@ import FormBuilder from './components/FormBuilder';
 import JsonDropZone from './components/JsonDropZone';
 import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
-import { ensureQuestionIds } from './utils/formUtils';
+import { ensureQuestionIds, generateQuestionTags } from './utils/formUtils';
 
 function App() {
   const [formData, setFormData] = useState(null);
   const [currentView, setCurrentView] = useState('import'); // 'import', 'builder', 'preview'
   const [uploadMode, setUploadMode] = useState('pdf'); // 'pdf' or 'json'
 
+  const handleJsonImport = useCallback((jsonData) => {
+    console.log('Imported JSON:', jsonData);
   const handleJsonImport = useCallback((jsonData) => {
     console.log('Imported JSON:', jsonData);
 
@@ -21,7 +23,16 @@ function App() {
     // Ensure all questions have unique IDs
     normalizedData = ensureQuestionIds(normalizedData);
 
+    // Auto-generate question tags and labels
+    normalizedData = generateQuestionTags(normalizedData, {
+      prefix: '', // No prefix by default
+      forceRegenerate: false, // Only generate if missing
+      generateLabels: true // Generate labels too
+    });
+
     setFormData(normalizedData);
+    setCurrentView('builder');
+  }, []);
     setCurrentView('builder');
   }, []);
 
