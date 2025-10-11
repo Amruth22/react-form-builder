@@ -96,9 +96,9 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       // Auto-generate question tags and labels
       setProgress('Generating question tags...');
       const taggedData = generateQuestionTags(processedData, {
-        prefix: '', // No prefix by default
-        forceRegenerate: false, // Only generate if missing
-        generateLabels: true // Generate labels too
+        prefix: '',
+        forceRegenerate: false,
+        generateLabels: true
       });
 
       // Success!
@@ -115,6 +115,7 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       setTimeout(() => {
         onJsonReceived(taggedData);
       }, 500);
+
     } catch (err) {
       console.error('PDF processing error:', err);
       setError(err.message || 'Failed to process PDF');
