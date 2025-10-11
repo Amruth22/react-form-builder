@@ -21,40 +21,6 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e) => {
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const pdfFile = files.find(file => file.type === 'application/pdf');
-    
-    if (pdfFile) {
-      processPdf(pdfFile);
-    } else {
-      setError('Please upload a PDF file');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleFileSelect = useCallback((e) => {
-    const file = e.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      processPdf(file);
-    } else {
-      setError('Please select a PDF file');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const handleFileSelect = useCallback((e) => {
-    const file = e.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      processPdf(file);
-    } else {
-      setError('Please select a PDF file');
-    }
-  }, []);
-
   const processPdf = async (file) => {
     setIsProcessing(true);
     setError(null);
@@ -134,6 +100,31 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       setProgress(null);
     }
   };
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    const pdfFile = files.find(file => file.type === 'application/pdf');
+    
+    if (pdfFile) {
+      processPdf(pdfFile);
+    } else {
+      setError('Please upload a PDF file');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleFileSelect = useCallback((e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      processPdf(file);
+    } else {
+      setError('Please select a PDF file');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const resetUpload = () => {
     setIsProcessing(false);
