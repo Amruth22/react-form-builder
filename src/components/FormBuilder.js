@@ -204,8 +204,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       .groups[path.groupIndex]
       .questions.splice(path.questionIndex, 1);
 
-    onFormDataChange(newFormData);
-  }, [formData, onFormDataChange, selectedPageIndex]);
+  }, [formData, onFormDataChange]);
 
   const handleAddQuestion = useCallback((pageIndex, sectionIndex, groupIndex) => {
     const newQuestion = {
@@ -221,8 +220,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       .groups[groupIndex]
       .questions.push(newQuestion);
 
-    onFormDataChange(newFormData);
-  }, [formData, onFormDataChange, selectedPageIndex]);
+  }, [formData, onFormDataChange]);
 
   const handleAddSection = useCallback(() => {
     const newSection = {
@@ -329,8 +327,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     const newFormData = JSON.parse(JSON.stringify(formData));
     newFormData.pages[pageIndex].sections[sectionIndex].groups.splice(groupIndex, 1);
 
-    onFormDataChange(newFormData);
-  }, [formData, onFormDataChange, selectedPageIndex]);
+  }, [formData, onFormDataChange]);
 
   const handleDeleteSection = useCallback((pageIndex, sectionIndex) => {
     if (!window.confirm('Delete this section and all its groups/questions?')) return;
@@ -338,8 +335,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     const newFormData = JSON.parse(JSON.stringify(formData));
     newFormData.pages[pageIndex].sections.splice(sectionIndex, 1);
 
-    onFormDataChange(newFormData);
-  }, [formData, onFormDataChange, selectedPageIndex]);
+  }, [formData, onFormDataChange]);
 
   const handleExport = useCallback(() => {
     const htmlContent = HtmlExporter.generateHtml(formData);
