@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
 import API_CONFIG from '../config/api';
 import { applySmartFieldDetection, enrichWithPdfMetadata } from '../utils/pdfFieldDetection';
+import { generateQuestionTags } from '../utils/formUtils';
 
 const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -85,15 +86,32 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       const jsonData = await jsonResponse.json();
 
       // Enrich with PDF metadata
-      setProgress('Adding PDF metadata...');
-      const enrichedData = enrichWithPdfMetadata(jsonData, result.data);
-
       // Apply smart field detection
       setProgress('Applying smart field detection...');
       const processedData = applySmartFieldDetection(enrichedData);
 
+      // Auto-generate question tags and labels
+      setProgress('Generating question tags...');
+      const taggedData = generateQuestionTags(processedData, {
+        prefix: '', // No prefix by default
+        forceRegenerate: false, // Only generate if missing
+        generateLabels: true // Generate labels too
+      });
+
       // Success!
       setSuccess({
+        filename: file.name,
+        pages: result.data.pages_extracted.length,
+        elements: result.data.extraction_info.total_form_elements,
+        structure: result.data.document_structure
+      });
+
+      setProgress('Complete! Loading form builder...');
+
+      // Pass JSON to parent component
+      setTimeout(() => {
+        onJsonReceived(taggedData);
+      }, 500);
         filename: file.name,
         pages: result.data.pages_extracted.length,
         elements: result.data.extraction_info.total_form_elements,
