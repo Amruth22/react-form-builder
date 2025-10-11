@@ -35,6 +35,8 @@ class ExcelExporter {
 
           group.questions.forEach((question, questionIndex) => {
             const row = {
+              'Question Tag': question.question_tag || '',
+              'Question Label': question.question_label || '',
               Page: pageTitle,
               Section: sectionTitle,
               Group: groupTitle,
@@ -46,6 +48,7 @@ class ExcelExporter {
               Options: this.formatOptions(question),
               'Applies To': this.formatAppliesTo(question),
               'Parent Question ID': question.parent_question_id || '',
+              'Parent Question': question.parent_question_text || '',
               'Show When': this.formatShowWhen(question),
               'Field Name': question.pdf_metadata?.field_name || '',
               'PDF Page': question.pdf_metadata?.page || '',
@@ -164,6 +167,8 @@ class ExcelExporter {
 
       // Set column widths
       const columnWidths = [
+        { wch: 20 }, // Question Tag
+        { wch: 30 }, // Question Label
         { wch: 30 }, // Page
         { wch: 30 }, // Section
         { wch: 25 }, // Group
@@ -175,6 +180,7 @@ class ExcelExporter {
         { wch: 60 }, // Options
         { wch: 20 }, // Applies To
         { wch: 30 }, // Parent Question ID
+        { wch: 50 }, // Parent Question
         { wch: 20 }, // Show When
         { wch: 25 }, // Field Name
         { wch: 10 }, // PDF Page

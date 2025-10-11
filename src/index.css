@@ -24,7 +24,7 @@
   }
   
   .question-card {
-    @apply bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200;
+    @apply bg-white rounded-lg border border-gray-200 p-3 shadow-sm hover:shadow-md transition-shadow duration-200;
   }
   
   .question-card.dragging {

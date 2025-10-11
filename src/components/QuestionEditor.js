@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle, FileType, MapPin, Info, Link } from 'lucide-react';
+import { X, Plus, Trash2, Save, ChevronDown, ChevronUp, AlertCircle, FileType, Info, Link, Edit3 } from 'lucide-react';
 import { getAllQuestionsWithIds, generateQuestionId } from '../utils/formUtils';
 
 const US_STATES = [
@@ -21,12 +21,16 @@ const CANADIAN_PROVINCES = [
 const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, currentPath }) => {
   const [formData, setFormData] = useState({
     question: '',
+    question_tag: '',
+    question_label: '',
     answer_type: 'text',
     required: false,
     options: [],
     validation: {},
     auto_detected: null,
     parent_question_id: null,
+    parent_question_text: null,
+    parent_question_label: null,
     show_when: null,
     sub_questions: [],
     applies_to: []
@@ -37,17 +41,22 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
   const [showSubQuestions, setShowSubQuestions] = useState(false);
   const [availableParentQuestions, setAvailableParentQuestions] = useState([]);
   const [parentQuestionOptions, setParentQuestionOptions] = useState([]);
+  const [editingSubQuestion, setEditingSubQuestion] = useState(null);
 
   useEffect(() => {
     if (question) {
       setFormData({
         question: question.question || '',
+        question_tag: question.question_tag || '',
+        question_label: question.question_label || '',
         answer_type: question.answer_type || 'text',
         required: question.required || false,
         options: question.options || [],
         validation: question.validation || {},
         auto_detected: question.auto_detected || null,
         parent_question_id: question.parent_question_id || null,
+        parent_question_text: question.parent_question_text || null,
+        parent_question_label: question.parent_question_label || null,
         show_when: question.show_when || null,
         sub_questions: question.sub_questions || [],
         applies_to: question.applies_to || []
@@ -86,6 +95,15 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
       const parentQ = availableParentQuestions.find(q => q.id === formData.parent_question_id);
       if (parentQ && parentQ.question.options) {
         setParentQuestionOptions(parentQ.question.options);
+
+        // Store parent question text for display purposes
+        if (!formData.parent_question_text) {
+          setFormData(prev => ({
+            ...prev,
+            parent_question_text: parentQ.question.question,
+            parent_question_label: parentQ.question.question_label || parentQ.question.question
+          }));
+        }
       } else {
         setParentQuestionOptions([]);
       }
@@ -247,15 +265,6 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                         <p className="text-sm font-mono text-gray-900">{question.pdf_metadata.field_name}</p>
                       </div>
                     )}
-                    {question.pdf_metadata.page && (
-                      <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <MapPin className="w-4 h-4 text-indigo-600" />
-                          <span className="text-xs font-medium text-gray-600">Source Page</span>
-                        </div>
-                        <p className="text-sm font-semibold text-gray-900">Page {question.pdf_metadata.page}</p>
-                      </div>
-                    )}
                     {question.pdf_metadata.original_type && (
                       <div className="bg-white rounded-lg p-3 border border-indigo-100">
                         <div className="flex items-center space-x-2 mb-1">
@@ -275,11 +284,6 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                       </div>
                     )}
                   </div>
-                  {question.pdf_metadata.coordinates && (
-                    <div className="mt-3 text-xs text-indigo-700">
-                      <span className="font-medium">Position:</span> X: {question.pdf_metadata.coordinates.x}, Y: {question.pdf_metadata.coordinates.y}
-                    </div>
-                  )}
                   <p className="text-xs text-indigo-600 mt-3">
                     💡 This information is extracted from the PDF and cannot be edited.
                   </p>
@@ -287,6 +291,40 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </div>
             </div>
           )}
+
+          {/* Question Tag and Label */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Question Tag <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.question_tag}
+                onChange={(e) => handleInputChange('question_tag', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                placeholder="e.g., Q1, APP_NAME, SEC1_Q3"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Short identifier for this question (used in exports and references)
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Question Label
+              </label>
+              <input
+                type="text"
+                value={formData.question_label}
+                onChange={(e) => handleInputChange('question_label', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="e.g., Applicant Name"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Human-readable label (optional, defaults to tag)
+              </p>
+            </div>
+          </div>
 
           {/* Question Text */}
           <div>
@@ -834,15 +872,26 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 {formData.sub_questions && formData.sub_questions.length > 0 && (
                   <div className="space-y-2">
                     {formData.sub_questions.map((subQ, index) => (
-                      <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                        <span className="flex-1 text-sm text-gray-700">{subQ.question || 'Untitled'}</span>
-                        <span className="text-xs text-gray-500">{subQ.answer_type}</span>
+                      <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-green-300 transition-colors">
+                        <span className="flex-1 text-sm font-medium text-gray-900">{subQ.question || 'Untitled'}</span>
+                        <span className="text-xs px-2 py-1 bg-white rounded border border-gray-300">{subQ.answer_type}</span>
+                        {subQ.required && (
+                          <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">Required</span>
+                        )}
+                        <button
+                          onClick={() => setEditingSubQuestion({ subQuestion: subQ, index })}
+                          className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded"
+                          title="Edit sub-question"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => {
                             const newSubQuestions = formData.sub_questions.filter((_, i) => i !== index);
                             handleInputChange('sub_questions', newSubQuestions);
                           }}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                          title="Delete sub-question"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -858,7 +907,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                       answer_type: 'text',
                       required: false
                     };
-                    handleInputChange('sub_questions', [...(formData.sub_questions || []), newSubQuestion]);
+                    setEditingSubQuestion({ subQuestion: newSubQuestion, index: -1 });
                   }}
                   className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-green-500 hover:text-green-600 transition-colors"
                 >
@@ -866,7 +915,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 </button>
 
                 <p className="text-xs text-gray-500">
-                  Note: Sub-questions are simplified and will inherit some properties from the parent question.
+                  💡 Sub-questions can have their own validation and requirements.
                 </p>
               </div>
             )}
@@ -890,6 +939,114 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
           </button>
         </div>
       </div>
+
+      {/* Sub-Question Editor Modal */}
+      {editingSubQuestion && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingSubQuestion.index === -1 ? 'Add Sub-Question' : 'Edit Sub-Question'}
+              </h3>
+              <button
+                onClick={() => setEditingSubQuestion(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sub-Question Text
+                </label>
+                <input
+                  type="text"
+                  value={editingSubQuestion.subQuestion.question || ''}
+                  onChange={(e) => setEditingSubQuestion(prev => ({
+                    ...prev,
+                    subQuestion: { ...prev.subQuestion, question: e.target.value }
+                  }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  placeholder="e.g., First Name, Last Name, etc."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Answer Type
+                </label>
+                <select
+                  value={editingSubQuestion.subQuestion.answer_type || 'text'}
+                  onChange={(e) => setEditingSubQuestion(prev => ({
+                    ...prev,
+                    subQuestion: { ...prev.subQuestion, answer_type: e.target.value }
+                  }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="text">Text Input</option>
+                  <option value="email">Email</option>
+                  <option value="tel">Phone</option>
+                  <option value="date">Date</option>
+                  <option value="number">Number</option>
+                  <option value="textarea">Long Text</option>
+                  <option value="dropdown">Dropdown</option>
+                </select>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="subq-required"
+                  checked={editingSubQuestion.subQuestion.required || false}
+                  onChange={(e) => setEditingSubQuestion(prev => ({
+                    ...prev,
+                    subQuestion: { ...prev.subQuestion, required: e.target.checked }
+                  }))}
+                  className="h-4 w-4 text-primary-600 rounded"
+                />
+                <label htmlFor="subq-required" className="ml-2 text-sm text-gray-700">
+                  Required field
+                </label>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  💡 Sub-questions appear nested under the parent question and are ideal for collecting related information (e.g., Name → First Name, Last Name).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={() => setEditingSubQuestion(null)}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const updatedSubQuestions = [...(formData.sub_questions || [])];
+                  if (editingSubQuestion.index === -1) {
+                    // Add new
+                    updatedSubQuestions.push(editingSubQuestion.subQuestion);
+                  } else {
+                    // Update existing
+                    updatedSubQuestions[editingSubQuestion.index] = editingSubQuestion.subQuestion;
+                  }
+                  handleInputChange('sub_questions', updatedSubQuestions);
+                  setEditingSubQuestion(null);
+                }}
+                className="btn-primary flex items-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Sub-Question</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

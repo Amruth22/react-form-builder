@@ -3,7 +3,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Download, Plus, Trash2, Edit3, GripVertical,
   ChevronDown, ChevronRight, Layers, FolderOpen,
-  FileText, Copy, FileSpreadsheet
+  FileText, Copy, FileSpreadsheet, Maximize2, Minimize2
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import QuestionEditor from './QuestionEditor';
@@ -18,8 +18,33 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const [collapsedSections, setCollapsedSections] = useState({});
   const [collapsedGroups, setCollapsedGroups] = useState({});
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const currentPage = formData?.pages?.[selectedPageIndex];
+
+  // Initialize all sections and groups as collapsed
+  React.useEffect(() => {
+    if (formData && formData.pages && !isInitialized) {
+      const newCollapsedSections = {};
+      const newCollapsedGroups = {};
+
+      formData.pages.forEach((page, pageIndex) => {
+        page.sections?.forEach((section, sectionIndex) => {
+          // Collapse all sections
+          newCollapsedSections[`${pageIndex}-${sectionIndex}`] = true;
+
+          // Collapse all groups
+          section.groups?.forEach((group, groupIndex) => {
+            newCollapsedGroups[`${pageIndex}-${sectionIndex}-${groupIndex}`] = true;
+          });
+        });
+      });
+
+      setCollapsedSections(newCollapsedSections);
+      setCollapsedGroups(newCollapsedGroups);
+      setIsInitialized(true);
+    }
+  }, [formData, isInitialized]);
 
   const toggleSection = useCallback((sectionIndex) => {
     setCollapsedSections(prev => ({
@@ -34,6 +59,40 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
       [`${selectedPageIndex}-${sectionIndex}-${groupIndex}`]: !prev[`${selectedPageIndex}-${sectionIndex}-${groupIndex}`]
     }));
   }, [selectedPageIndex]);
+
+  const expandAll = useCallback(() => {
+    if (!currentPage) return;
+
+    const newCollapsedSections = {};
+    const newCollapsedGroups = {};
+
+    currentPage.sections?.forEach((section, sectionIndex) => {
+      newCollapsedSections[`${selectedPageIndex}-${sectionIndex}`] = false;
+      section.groups?.forEach((group, groupIndex) => {
+        newCollapsedGroups[`${selectedPageIndex}-${sectionIndex}-${groupIndex}`] = false;
+      });
+    });
+
+    setCollapsedSections(prev => ({ ...prev, ...newCollapsedSections }));
+    setCollapsedGroups(prev => ({ ...prev, ...newCollapsedGroups }));
+  }, [currentPage, selectedPageIndex]);
+
+  const collapseAll = useCallback(() => {
+    if (!currentPage) return;
+
+    const newCollapsedSections = {};
+    const newCollapsedGroups = {};
+
+    currentPage.sections?.forEach((section, sectionIndex) => {
+      newCollapsedSections[`${selectedPageIndex}-${sectionIndex}`] = true;
+      section.groups?.forEach((group, groupIndex) => {
+        newCollapsedGroups[`${selectedPageIndex}-${sectionIndex}-${groupIndex}`] = true;
+      });
+    });
+
+    setCollapsedSections(prev => ({ ...prev, ...newCollapsedSections }));
+    setCollapsedGroups(prev => ({ ...prev, ...newCollapsedGroups }));
+  }, [currentPage, selectedPageIndex]);
 
   const handleDragEnd = useCallback((result) => {
     if (!result.destination) return;
@@ -459,18 +518,36 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                 <h2 className="text-xl font-semibold text-gray-900">
                   {currentPage?.title || `Page ${currentPage?.page_number || selectedPageIndex + 1}`}
                 </h2>
-                <button
-                  onClick={handleAddSection}
-                  className="btn-primary flex items-center space-x-2 shadow-sm"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Section</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={expandAll}
+                    className="btn-secondary flex items-center space-x-1.5 text-sm"
+                    title="Expand all sections and groups"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>Expand All</span>
+                  </button>
+                  <button
+                    onClick={collapseAll}
+                    className="btn-secondary flex items-center space-x-1.5 text-sm"
+                    title="Collapse all sections and groups"
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" />
+                    <span>Collapse All</span>
+                  </button>
+                  <button
+                    onClick={handleAddSection}
+                    className="btn-primary flex items-center space-x-2 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Section</span>
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Sections */}
-            <div className="p-6">
+            <div className="p-4">
               {currentPage?.sections?.length === 0 ? (
                 <div className="text-center py-12">
                   <Layers className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -502,7 +579,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                 className={`border-2 rounded-lg ${snapshot.isDragging ? 'border-primary-400 shadow-lg' : 'border-gray-200'}`}
                               >
                                 {/* Section Header */}
-                                <div className="bg-gray-50 border-b border-gray-200 p-4">
+                                <div className="bg-gray-50 border-b border-gray-200 p-3">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center space-x-3 flex-1">
                                       <div {...provided.dragHandleProps} className="cursor-grab">
@@ -523,7 +600,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                         {section.title}
                                       </h3>
                                       <span className="text-sm text-gray-500">
-                                        ({section.groups?.length || 0} groups)
+                                        ({section.groups?.length || 0} groups, {section.groups?.reduce((total, g) => total + (g.questions?.length || 0), 0) || 0} questions)
                                       </span>
                                     </div>
                                     <div className="flex items-center space-x-2">
@@ -551,13 +628,13 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
                                 {/* Groups */}
                                 {!collapsedSections[`${selectedPageIndex}-${sectionIndex}`] && (
-                                  <div className="p-4">
+                                  <div className="p-3">
                                     <Droppable droppableId={`page-${selectedPageIndex}-section-${sectionIndex}`} type="group">
                                       {(provided) => (
                                         <div
                                           {...provided.droppableProps}
                                           ref={provided.innerRef}
-                                          className="space-y-4"
+                                          className="space-y-3"
                                         >
                                           {section.groups?.map((group, groupIndex) => (
                                             <Draggable
@@ -572,7 +649,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                   className={`border rounded-lg ${snapshot.isDragging ? 'border-primary-400 shadow-md' : 'border-gray-200'}`}
                                                 >
                                                   {/* Group Header */}
-                                                  <div className="bg-blue-50 border-b border-blue-200 p-3">
+                                                  <div className="bg-blue-50 border-b border-blue-200 p-2.5">
                                                     <div className="flex items-center justify-between">
                                                       <div className="flex items-center space-x-3 flex-1">
                                                         <div {...provided.dragHandleProps} className="cursor-grab">
@@ -627,7 +704,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
 
                                                   {/* Questions */}
                                                   {!collapsedGroups[`${selectedPageIndex}-${sectionIndex}-${groupIndex}`] && (
-                                                    <div className="p-3">
+                                                    <div className="p-2.5">
                                                       {group.questions?.length === 0 ? (
                                                         <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
                                                           <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
@@ -648,7 +725,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                             <div
                                                               {...provided.droppableProps}
                                                               ref={provided.innerRef}
-                                                              className="space-y-3"
+                                                              className="space-y-2"
                                                             >
                                                               {group.questions.map((question, questionIndex) => (
                                                                 <Draggable
@@ -758,14 +835,14 @@ const GroupEditor = ({ group, onSave, onCancel }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Edit Group</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
             <Edit3 className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Group Title
@@ -792,7 +869,7 @@ const GroupEditor = ({ group, onSave, onCancel }) => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
           <button onClick={onCancel} className="btn-secondary">
             Cancel
           </button>
@@ -812,14 +889,14 @@ const SectionEditor = ({ section, onSave, onCancel }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Edit Section</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
             <Edit3 className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Section Title
           </label>
@@ -831,7 +908,7 @@ const SectionEditor = ({ section, onSave, onCancel }) => {
           />
         </div>
 
-        <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
           <button onClick={onCancel} className="btn-secondary">
             Cancel
           </button>

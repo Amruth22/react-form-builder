@@ -14,9 +14,8 @@ import {
   FileText,
   MessageSquare,
   FileType,
-  MapPin,
   Link,
-  ChevronDown,
+  ChevronRight,
   Users
 } from 'lucide-react';
 
@@ -85,7 +84,19 @@ const QuestionCard = ({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {/* Question Header */}
-              <div className="flex items-center space-x-3 mb-2 flex-wrap">
+              <div className="flex items-center space-x-2 mb-2 flex-wrap">
+                {/* Question Tag */}
+                {question.question_tag && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-primary-600 text-white border-2 border-primary-700">
+                    {question.question_tag}
+                  </span>
+                )}
+                {/* Question Label */}
+                {question.question_label && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-primary-100 text-primary-800 border border-primary-300">
+                    {question.question_label}
+                  </span>
+                )}
                 <div className="flex items-center space-x-2">
                   <Icon className="w-4 h-4 text-primary-600" />
                   <span className="text-sm font-medium text-primary-600">
@@ -175,12 +186,6 @@ const QuestionCard = ({
                       PDF: {question.pdf_metadata.field_name}
                     </span>
                   )}
-                  {question.pdf_metadata.page && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      Page {question.pdf_metadata.page}
-                    </span>
-                  )}
                   {question.pdf_metadata.detected_type && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
                       ✓ Auto-detected: {question.pdf_metadata.detected_type}
@@ -199,20 +204,40 @@ const QuestionCard = ({
               {/* Parent Question Dependency */}
               {question.parent_question_id && (
                 <div className="mt-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                    <Link className="w-3 h-3 mr-1" />
-                    Conditional: Shows when parent = {Array.isArray(question.show_when) ? question.show_when.join(', ') : question.show_when || 'any value'}
-                  </span>
+                  <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <Link className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span>
+                      Depends on: <span className="font-semibold">"{question.parent_question_text || question.parent_question_id}"</span>
+                      {question.show_when && (
+                        <span className="ml-1">
+                          (when = {Array.isArray(question.show_when) ? question.show_when.join(', ') : question.show_when})
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 </div>
               )}
 
               {/* Sub-Questions */}
               {question.sub_questions && question.sub_questions.length > 0 && (
                 <div className="mt-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                    <ChevronDown className="w-3 h-3 mr-1" />
-                    Has {question.sub_questions.length} sub-question{question.sub_questions.length !== 1 ? 's' : ''}
-                  </span>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Sub-questions ({question.sub_questions.length}):
+                  </p>
+                  <div className="pl-4 border-l-2 border-green-300 space-y-1.5">
+                    {question.sub_questions.map((subQ, subIdx) => (
+                      <div key={subIdx} className="flex items-center space-x-2">
+                        <ChevronRight className="w-3 h-3 text-green-600 flex-shrink-0" />
+                        <span className="text-sm text-gray-800">{subQ.question || 'Untitled'}</span>
+                        <span className="text-xs text-gray-500">({subQ.answer_type})</span>
+                        {subQ.required && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                            Required
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
