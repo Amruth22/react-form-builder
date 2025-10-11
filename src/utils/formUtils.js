@@ -387,7 +387,7 @@ export const generateLabelFromQuestion = (questionText) => {
   // Remove common prefixes and clean up
   let label = questionText
     .replace(/^(Please\s+)?(enter|provide|select|choose|indicate|specify)\s+/i, '')
-    .replace(/[:\?]+$/, '') // Remove trailing colons and question marks
+    .replace(/[:?]+$/, '') // Remove trailing colons and question marks
     .replace(/\([^)]*\)/g, '') // Remove parenthetical content
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();
