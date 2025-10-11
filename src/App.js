@@ -21,11 +21,12 @@ function App() {
     // Ensure all questions have unique IDs
     normalizedData = ensureQuestionIds(normalizedData);
 
-    // Auto-generate question tags and labels
+    // Auto-generate question labels only (not tags - we use PDF field names)
     normalizedData = generateQuestionTags(normalizedData, {
-      prefix: '', // No prefix by default
-      forceRegenerate: false, // Only generate if missing
-      generateLabels: true // Generate labels too
+      prefix: '',
+      forceRegenerate: false,
+      generateLabels: true,
+      usePdfFieldNames: false // Don't modify tags, just generate labels
     });
 
     setFormData(normalizedData);
