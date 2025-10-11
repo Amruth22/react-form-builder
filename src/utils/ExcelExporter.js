@@ -35,7 +35,7 @@ class ExcelExporter {
 
           group.questions.forEach((question, questionIndex) => {
             const row = {
-              'Question Tag': question.question_tag || '',
+              'Question Tag': question.pdf_metadata?.field_name || question.question_tag || '',
               'Question Label': question.question_label || '',
               Page: pageTitle,
               Section: sectionTitle,
