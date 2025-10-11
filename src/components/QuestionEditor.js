@@ -110,6 +110,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
     } else {
       setParentQuestionOptions([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.parent_question_id, availableParentQuestions, allFormData]);
 
   const handleInputChange = (field, value) => {
