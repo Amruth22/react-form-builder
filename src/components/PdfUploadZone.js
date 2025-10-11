@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import API_CONFIG from '../config/api';
 import { applySmartFieldDetection, enrichWithPdfMetadata } from '../utils/pdfFieldDetection';
 import { generateQuestionTags } from '../utils/formUtils';
@@ -22,6 +22,7 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
   }, []);
 
   const handleDrop = useCallback((e) => {
+  const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
     
@@ -33,8 +34,18 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
     } else {
       setError('Please upload a PDF file');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleFileSelect = useCallback((e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      processPdf(file);
+    } else {
+      setError('Please select a PDF file');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const handleFileSelect = useCallback((e) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
