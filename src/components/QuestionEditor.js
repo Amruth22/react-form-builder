@@ -297,17 +297,25 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Question Tag <span className="text-red-500">*</span>
+                Question Tag {question.pdf_metadata?.field_name ? '(from PDF)' : '<span className="text-red-500">*</span>'}
               </label>
               <input
                 type="text"
-                value={formData.question_tag}
+                value={question.pdf_metadata?.field_name || formData.question_tag}
                 onChange={(e) => handleInputChange('question_tag', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm ${
+                  question.pdf_metadata?.field_name 
+                    ? 'border-indigo-300 bg-indigo-50' 
+                    : 'border-gray-300'
+                }`}
                 placeholder="e.g., Q1, APP_NAME, SEC1_Q3"
+                readOnly={!!question.pdf_metadata?.field_name}
+                title={question.pdf_metadata?.field_name ? 'PDF Field Name (read-only)' : 'Enter custom tag'}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Short identifier for this question (used in exports and references)
+                {question.pdf_metadata?.field_name 
+                  ? '📄 Using PDF embedded field name (read-only)' 
+                  : 'Short identifier for this question (used in exports and references)'}
               </p>
             </div>
             <div>
