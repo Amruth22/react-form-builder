@@ -553,6 +553,7 @@ export const validateQuestionTags = (formData) => {
   return results;
 };
 
+/**
  * Ensure all questions have unique IDs
  */
 export const ensureQuestionIds = (formData) => {
