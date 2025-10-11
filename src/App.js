@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText, Download, Settings } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import FormBuilder from './components/FormBuilder';
 // import FormPreview from './components/FormPreview'; // Hidden for now
 import JsonDropZone from './components/JsonDropZone';
