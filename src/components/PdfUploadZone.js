@@ -70,12 +70,13 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       setProgress('Applying smart field detection...');
       const processedData = applySmartFieldDetection(enrichedData);
 
-      // Auto-generate question tags and labels
-      setProgress('Generating question tags...');
+      // Auto-generate question labels only (not tags - we use PDF field names)
+      setProgress('Generating question labels...');
       const taggedData = generateQuestionTags(processedData, {
         prefix: '',
         forceRegenerate: false,
-        generateLabels: true
+        generateLabels: true,
+        usePdfFieldNames: false // Don't modify tags, just generate labels
       });
 
       // Success!
