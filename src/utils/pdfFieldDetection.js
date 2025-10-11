@@ -62,9 +62,14 @@ const detectSymbolType = (symbol) => {
   
   return null;
 };
-
 /**
  * Main function to determine field type
+ * 
+ * Priority:
+ * 1. Check for "select all" text → checkbox
+ * 2. Check symbol type → radio or checkbox
+ * 3. Default → radio (as per client requirement)
+ */
 export const determineFieldType = (fieldData) => {
   const {
     question = '',
@@ -73,15 +78,6 @@ export const determineFieldType = (fieldData) => {
   } = fieldData;
   
   // Rule 1: Check for "select all" text in question
-  if (detectMultiSelectText(question)) {
-    return 'checkbox';
-  }
-  
-  // Rule 2: Check for "select all" in any option text
-  const hasMultiSelectInOptions = options.some(opt => {
-    const optText = typeof opt === 'string' ? opt : opt.label || opt.value || '';
-    return detectMultiSelectText(optText);
-  });
   if (detectMultiSelectText(question)) {
     return 'checkbox';
   }
@@ -103,6 +99,8 @@ export const determineFieldType = (fieldData) => {
   }
   
   // Rule 4: Default to radio button (client requirement)
+  return 'radio';
+};
   return 'radio';
 };
 
