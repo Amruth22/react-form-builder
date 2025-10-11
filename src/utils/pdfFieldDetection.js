@@ -65,21 +65,23 @@ const detectSymbolType = (symbol) => {
 
 /**
  * Main function to determine field type
- * 
- * Priority:
- * 1. Check for "select all" text → checkbox
- * 2. Check symbol type → radio or checkbox
- * 3. Default → radio (as per client requirement)
- */
 export const determineFieldType = (fieldData) => {
   const {
     question = '',
     options = [],
-    symbol = null,
-    originalType = 'checkbox'
+    symbol = null
   } = fieldData;
   
   // Rule 1: Check for "select all" text in question
+  if (detectMultiSelectText(question)) {
+    return 'checkbox';
+  }
+  
+  // Rule 2: Check for "select all" in any option text
+  const hasMultiSelectInOptions = options.some(opt => {
+    const optText = typeof opt === 'string' ? opt : opt.label || opt.value || '';
+    return detectMultiSelectText(optText);
+  });
   if (detectMultiSelectText(question)) {
     return 'checkbox';
   }
@@ -263,9 +265,11 @@ export const enrichWithPdfMetadata = (formData, pdfExtractionData) => {
   return enrichedData;
 };
 
-export default {
+const pdfFieldDetectionUtils = {
   determineFieldType,
   applySmartFieldDetection,
   analyzeFieldDetection,
   enrichWithPdfMetadata
 };
+
+export default pdfFieldDetectionUtils;
