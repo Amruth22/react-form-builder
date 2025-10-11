@@ -374,7 +374,6 @@ export const shouldQuestionBeVisible = (question, parentAnswer, formValues) => {
   }
 };
 
-/**
 
 /**
  * Generate a smart label from question text
