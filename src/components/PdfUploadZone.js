@@ -134,161 +134,164 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
     setSuccess(null);
   };
 
+  const fileInputRef = React.useRef(null);
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    fileInputRef.current?.click();
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Upload Zone */}
-      {!isProcessing && !success && (
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`
-            relative border-2 border-dashed rounded-lg p-12 text-center transition-all
-            ${isDragging 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-gray-300 hover:border-gray-400 bg-white'
-            }
-          `}
-        >
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileSelect}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-          
-          <FileText className={`w-16 h-16 mx-auto mb-4 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
-          
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Upload PDF Form
-          </h3>
-          
-          <p className="text-gray-600 mb-4">
-            Drag and drop your PDF file here, or click to browse
-          </p>
-          
-          <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Upload className="w-5 h-5 mr-2" />
-            Select PDF File
-          </div>
-          
-          <p className="text-sm text-gray-500 mt-4">
-            Your PDF will be processed with AI to extract form fields
-          </p>
-        </div>
-      )}
+    <div className="min-h-[80vh] flex items-center justify-center">
+      <div className="w-full max-w-3xl mx-auto">
+        {/* Upload Zone */}
+        {!isProcessing && !success && (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              relative border-3 border-dashed rounded-2xl p-16 text-center transition-all shadow-lg
+              ${isDragging
+                ? 'border-blue-500 bg-blue-50 scale-105'
+                : 'border-gray-300 hover:border-blue-400 bg-white hover:shadow-xl'
+              }
+            `}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
 
-      {/* Processing State */}
-      {isProcessing && !success && (
-        <div className="bg-white rounded-lg border-2 border-blue-200 p-8">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Processing PDF...
-            </h3>
-            
-            <p className="text-gray-600 mb-6">
-              {progress}
-            </p>
-            
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+            <div className="mb-8 pointer-events-none">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                <FileText className="w-12 h-12 text-white" />
+              </div>
+
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                Upload Your PDF Form
+              </h1>
+
+              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+                Drag and drop your PDF file here, or click the button below
+              </p>
             </div>
-            
-            <p className="text-sm text-gray-500">
-              This may take 2-5 minutes depending on the PDF size
+
+            <button
+              onClick={handleButtonClick}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 pointer-events-auto relative z-10"
+            >
+              <Upload className="w-6 h-6 mr-3" />
+              Select PDF File
+            </button>
+
+            <p className="text-sm text-gray-500 mt-8">
+              AI will automatically extract all form fields from your PDF
             </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Success State */}
-      {success && (
-        <div className="bg-white rounded-lg border-2 border-green-200 p-8">
-          <div className="text-center">
-            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              PDF Processed Successfully!
-            </h3>
-            
-            <p className="text-gray-600 mb-6">
-              {progress}
-            </p>
-            
-            <div className="bg-green-50 rounded-lg p-4 mb-6">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">File</p>
-                  <p className="font-semibold text-gray-900">{success.filename}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Pages</p>
-                  <p className="font-semibold text-gray-900">{success.pages}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Form Elements</p>
-                  <p className="font-semibold text-gray-900">{success.elements}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Sections</p>
-                  <p className="font-semibold text-gray-900">{success.structure.sections}</p>
+        {/* Processing State */}
+        {isProcessing && !success && (
+          <div className="bg-white rounded-2xl border-2 border-blue-200 p-12 shadow-xl">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Processing Your PDF
+              </h3>
+
+              <p className="text-lg text-gray-600 mb-8">
+                {progress}
+              </p>
+
+              <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-3 mb-6 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-3 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+              </div>
+
+              <p className="text-sm text-gray-500">
+                This may take 2-5 minutes depending on the PDF size
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Success State */}
+        {success && (
+          <div className="bg-white rounded-2xl border-2 border-green-200 p-12 shadow-xl">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                PDF Processed Successfully!
+              </h3>
+
+              <p className="text-lg text-gray-600 mb-8">
+                {progress}
+              </p>
+
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-8 border border-green-200">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">File</p>
+                    <p className="font-semibold text-gray-900 truncate">{success.filename}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Pages</p>
+                    <p className="font-semibold text-gray-900">{success.pages}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Form Elements</p>
+                    <p className="font-semibold text-gray-900">{success.elements}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Sections</p>
+                    <p className="font-semibold text-gray-900">{success.structure.sections}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Loading form builder...</span>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Error State */}
-      {error && (
-        <div className="bg-white rounded-lg border-2 border-red-200 p-8">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Processing Failed
-            </h3>
-            
-            <p className="text-red-600 mb-6">
-              {error}
-            </p>
-            
-            <button
-              onClick={resetUpload}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Upload className="w-5 h-5 mr-2" />
-              Try Again
-            </button>
+              <div className="flex items-center justify-center space-x-3 text-gray-600">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-base font-medium">Loading form builder...</span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* API Configuration Info */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <div className="flex items-start space-x-3">
-          <div className="flex-shrink-0">
-            <div className={`w-3 h-3 rounded-full mt-1 ${isProcessing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+        {/* Error State */}
+        {error && (
+          <div className="bg-white rounded-2xl border-2 border-red-200 p-12 shadow-xl">
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-10 h-10 text-red-600" />
+              </div>
+
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Processing Failed
+              </h3>
+
+              <p className="text-lg text-red-600 mb-8 max-w-md mx-auto">
+                {error}
+              </p>
+
+              <button
+                onClick={resetUpload}
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <Upload className="w-6 h-6 mr-3" />
+                Try Again
+              </button>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">
-              API Connection
-            </p>
-            <p className="text-sm text-gray-600">
-              Connected to: <code className="text-xs bg-white px-2 py-1 rounded">{apiUrl}</code>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Make sure your Flask API is running on this URL
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

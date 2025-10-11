@@ -1,8 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, FileText } from 'lucide-react';
 import FormBuilder from './components/FormBuilder';
 // import FormPreview from './components/FormPreview'; // Hidden for now
-import JsonDropZone from './components/JsonDropZone';
 import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
 import { ensureQuestionIds, generateQuestionTags } from './utils/formUtils';
@@ -10,7 +8,6 @@ import { ensureQuestionIds, generateQuestionTags } from './utils/formUtils';
 function App() {
   const [formData, setFormData] = useState(null);
   const [currentView, setCurrentView] = useState('import'); // 'import', 'builder', 'preview'
-  const [uploadMode, setUploadMode] = useState('pdf'); // 'pdf' or 'json'
 
   const handleJsonImport = useCallback((jsonData) => {
     console.log('Imported JSON:', jsonData);
@@ -33,6 +30,59 @@ function App() {
     setCurrentView('builder');
   }, []);
 
+  // Merge sections with the same name across pages
+  const mergeSectionsAcrossPages = (data) => {
+    if (!data || !data.pages || data.pages.length === 0) return data;
+
+    const sectionMap = new Map(); // Map<sectionTitle, {groups: [], sourcePages: []}>
+
+    // Collect all sections across all pages
+    data.pages.forEach((page, pageIndex) => {
+      page.sections?.forEach((section) => {
+        if (!section) return; // Skip undefined sections
+
+        const sectionTitle = section.title || `Section ${pageIndex + 1}`;
+
+        if (!sectionMap.has(sectionTitle)) {
+          sectionMap.set(sectionTitle, {
+            title: sectionTitle,
+            groups: [],
+            sourcePages: []
+          });
+        }
+
+        const mergedSection = sectionMap.get(sectionTitle);
+        // Filter out undefined groups before merging
+        const validGroups = (section.groups || []).filter(group => group != null);
+        mergedSection.groups.push(...validGroups);
+        mergedSection.sourcePages.push(pageIndex + 1);
+      });
+    });
+
+    // Create a single page with all merged sections
+    const mergedSections = Array.from(sectionMap.values());
+
+    console.log('🔄 Section Merging:');
+    console.log(`  - Original pages: ${data.pages.length}`);
+    console.log(`  - Unique sections found: ${mergedSections.length}`);
+    mergedSections.forEach(section => {
+      console.log(`    • "${section.title}": ${section.groups.length} groups from pages [${section.sourcePages.join(', ')}]`);
+    });
+
+    return {
+      ...data,
+      pages: [
+        {
+          title: data.document_info?.source_pdf || 'Form',
+          page_number: 1,
+          sections: mergedSections
+        }
+      ],
+      _originalPageCount: data.pages.length,
+      _sectionsMerged: true
+    };
+  };
+
   // Normalize form data to support both flat and hierarchical structures
   const normalizeFormData = (data) => {
     if (!data || !data.pages) return data;
@@ -40,40 +90,45 @@ function App() {
     // Check if already in new format (has sections)
     const hasNewFormat = data.pages.some(page => page.sections);
 
+    let normalizedData;
+
     if (hasNewFormat) {
       // Already in new format
-      return data;
+      normalizedData = data;
+    } else {
+      // Convert old format (form_elements) to new format (sections -> groups -> questions)
+      const normalizedPages = data.pages.map((page, pageIndex) => {
+        if (page.sections) {
+          return page; // Already normalized
+        }
+
+        // Convert flat form_elements to hierarchical structure
+        return {
+          ...page,
+          title: page.title || `Page ${page.page_number || pageIndex + 1}`,
+          sections: [
+            {
+              title: 'Form Fields',
+              groups: [
+                {
+                  title: 'Questions',
+                  repeatable: false,
+                  questions: page.form_elements || []
+                }
+              ]
+            }
+          ]
+        };
+      });
+
+      normalizedData = {
+        ...data,
+        pages: normalizedPages
+      };
     }
 
-    // Convert old format (form_elements) to new format (sections -> groups -> questions)
-    const normalizedPages = data.pages.map((page, pageIndex) => {
-      if (page.sections) {
-        return page; // Already normalized
-      }
-
-      // Convert flat form_elements to hierarchical structure
-      return {
-        ...page,
-        title: page.title || `Page ${page.page_number || pageIndex + 1}`,
-        sections: [
-          {
-            title: 'Form Fields',
-            groups: [
-              {
-                title: 'Questions',
-                repeatable: false,
-                questions: page.form_elements || []
-              }
-            ]
-          }
-        ]
-      };
-    });
-
-    return {
-      ...data,
-      pages: normalizedPages
-    };
+    // Merge sections with the same name across pages
+    return mergeSectionsAcrossPages(normalizedData);
   };
 
   const handleExportHtml = useCallback((htmlContent) => {
@@ -102,116 +157,22 @@ function App() {
         hasData={!!formData}
       />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4">
         {currentView === 'import' && (
           <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <FileText className="w-16 h-16 text-primary-500 mx-auto mb-4" />
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                React Form Builder
-              </h1>
-              <p className="text-gray-600 text-lg">
-                Upload PDF or JSON to build beautiful forms
-              </p>
-            </div>
-            
-            {/* Upload Mode Selector */}
-            <div className="flex items-center justify-center space-x-4 mb-8">
-              <button
-                onClick={() => setUploadMode('pdf')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  uploadMode === 'pdf'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5" />
-                  <span>Upload PDF</span>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setUploadMode('json')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  uploadMode === 'json'
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400'
-                }`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Upload className="w-5 h-5" />
-                  <span>Upload JSON</span>
-                </div>
-              </button>
-            </div>
-            
-            {/* Upload Components */}
-            {uploadMode === 'pdf' ? (
-              <PdfUploadZone onJsonReceived={handleJsonImport} />
-            ) : (
-              <JsonDropZone onJsonImport={handleJsonImport} />
-            )}
-            
-            <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                How it works:
-              </h3>
-              <div className="space-y-3 text-gray-600">
-                {uploadMode === 'pdf' ? (
-                  <>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        1
-                      </div>
-                      <p>Upload your PDF form - AI will extract all fields automatically</p>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        2
-                      </div>
-                      <p>Organize and edit your form questions visually</p>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        3
-                      </div>
-                      <p>Export as a beautiful HTML form ready to use</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        1
-                      </div>
-                      <p>Drag & drop your JSON file (from PDF processing) above</p>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        2
-                      </div>
-                      <p>Organize and edit your form questions visually</p>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
-                        3
-                      </div>
-                      <p>Export as a beautiful HTML form ready to use</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            {/* PDF Upload Only */}
+            <PdfUploadZone onJsonReceived={handleJsonImport} />
           </div>
         )}
 
         {currentView === 'builder' && formData && (
-          <FormBuilder 
-            formData={formData}
-            onFormDataChange={setFormData}
-            onExportHtml={handleExportHtml}
-          />
+          <div className="py-6">
+            <FormBuilder
+              formData={formData}
+              onFormDataChange={setFormData}
+              onExportHtml={handleExportHtml}
+            />
+          </div>
         )}
 
         {/* Preview hidden for now */}

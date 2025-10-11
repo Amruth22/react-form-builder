@@ -14,7 +14,6 @@ import {
   FileText,
   MessageSquare,
   FileType,
-  Link,
   ChevronRight,
   Users
 } from 'lucide-react';
@@ -112,19 +111,9 @@ const QuestionCard = ({
                     Required
                   </span>
                 )}
-                {sectionTitle && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                    {sectionTitle}
-                  </span>
-                )}
-                {groupTitle && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                    {groupTitle}
-                  </span>
-                )}
                 {isRepeatable && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                    In Repeatable Group
+                    Repeatable
                   </span>
                 )}
               </div>
@@ -202,23 +191,6 @@ const QuestionCard = ({
               {question.validation && Object.keys(question.validation).length > 0 && (
                 <div className="text-sm text-gray-600 mt-2">
                   <span className="font-medium">Validation:</span> {question.validation.type || 'Custom'}
-                </div>
-              )}
-
-              {/* Parent Question Dependency */}
-              {question.parent_question_id && (
-                <div className="mt-2">
-                  <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                    <Link className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span>
-                      Depends on: <span className="font-semibold">"{question.parent_question_text || question.parent_question_id}"</span>
-                      {question.show_when && (
-                        <span className="ml-1">
-                          (when = {Array.isArray(question.show_when) ? question.show_when.join(', ') : question.show_when})
-                        </span>
-                      )}
-                    </span>
-                  </div>
                 </div>
               )}
 

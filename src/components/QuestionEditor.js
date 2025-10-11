@@ -47,7 +47,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
     if (question) {
       setFormData({
         question: question.question || '',
-        question_tag: question.question_tag || '',
+        question_tag: question.question_tag || question.field_name || question.pdf_metadata?.field_name || '',
         question_label: question.question_label || '',
         answer_type: question.answer_type || 'text',
         required: question.required || false,
@@ -297,25 +297,21 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Question Tag {(question.field_name || question.pdf_metadata?.field_name) ? '(from PDF)' : '<span className="text-red-500">*</span>'}
+                Question Tag {(question.field_name || question.pdf_metadata?.field_name) ? '(from PDF)' : ''}
               </label>
               <input
                 type="text"
-                value={question.field_name || question.pdf_metadata?.field_name || formData.question_tag}
+                value={formData.question_tag || question.field_name || question.pdf_metadata?.field_name || ''}
                 onChange={(e) => handleInputChange('question_tag', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm ${
                   (question.field_name || question.pdf_metadata?.field_name)
-                    ? 'border-indigo-300 bg-indigo-50' 
+                    ? 'border-indigo-300 bg-indigo-50'
                     : 'border-gray-300'
                 }`}
                 placeholder="e.g., Q1, APP_NAME, SEC1_Q3"
-                readOnly={!!(question.field_name || question.pdf_metadata?.field_name)}
-                title={(question.field_name || question.pdf_metadata?.field_name) ? 'PDF Field Name (assigned by Claude)' : 'Enter custom tag'}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {(question.field_name || question.pdf_metadata?.field_name)
-                  ? '🤖 Claude assigned PDF field name (read-only)' 
-                  : 'Short identifier for this question (used in exports and references)'}
+                Short identifier for this question (used in exports and references)
               </p>
             </div>
             <div>

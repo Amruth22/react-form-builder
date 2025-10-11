@@ -7,12 +7,13 @@ export const calculateTotalQuestions = (formData) => {
   if (!formData || !formData.pages) return 0;
 
   return formData.pages.reduce((total, page) => {
-    if (!page.sections) return total;
+    if (!page || !page.sections) return total;
 
     const pageTotal = page.sections.reduce((sectionTotal, section) => {
-      if (!section.groups) return sectionTotal;
+      if (!section || !section.groups) return sectionTotal;
 
       const sectionQuestionTotal = section.groups.reduce((groupTotal, group) => {
+        if (!group) return groupTotal; // Safety check for undefined groups
         return groupTotal + (group.questions?.length || 0);
       }, 0);
 
