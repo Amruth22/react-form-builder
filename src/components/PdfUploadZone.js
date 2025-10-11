@@ -86,6 +86,9 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       const jsonData = await jsonResponse.json();
 
       // Enrich with PDF metadata
+      setProgress('Adding PDF metadata...');
+      const enrichedData = enrichWithPdfMetadata(jsonData, result.data);
+
       // Apply smart field detection
       setProgress('Applying smart field detection...');
       const processedData = applySmartFieldDetection(enrichedData);
@@ -112,19 +115,6 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
       setTimeout(() => {
         onJsonReceived(taggedData);
       }, 500);
-        filename: file.name,
-        pages: result.data.pages_extracted.length,
-        elements: result.data.extraction_info.total_form_elements,
-        structure: result.data.document_structure
-      });
-
-      setProgress('Complete! Loading form builder...');
-
-      // Pass JSON to parent component
-      setTimeout(() => {
-        onJsonReceived(processedData);
-      }, 500);
-
     } catch (err) {
       console.error('PDF processing error:', err);
       setError(err.message || 'Failed to process PDF');
