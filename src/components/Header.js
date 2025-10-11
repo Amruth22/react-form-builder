@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Settings, Eye, Upload, RotateCcw } from 'lucide-react';
+import { FileText, Settings, Upload, RotateCcw } from 'lucide-react';
 
 const Header = ({ currentView, onViewChange, onReset, hasData }) => {
   const navItems = [
