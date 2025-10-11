@@ -31,7 +31,6 @@ function App() {
     setFormData(normalizedData);
     setCurrentView('builder');
   }, []);
-  }, []);
 
   // Normalize form data to support both flat and hierarchical structures
   const normalizeFormData = (data) => {
