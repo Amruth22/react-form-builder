@@ -62,6 +62,7 @@ const detectSymbolType = (symbol) => {
   
   return null;
 };
+
 /**
  * Main function to determine field type
  * 
@@ -101,8 +102,6 @@ export const determineFieldType = (fieldData) => {
   // Rule 4: Default to radio button (client requirement)
   return 'radio';
 };
-  return 'radio';
-};
 
 /**
  * Process entire form data and apply smart detection
@@ -139,8 +138,7 @@ export const applySmartFieldDetection = (formData) => {
             const detectedType = determineFieldType({
               question: question.question,
               options: question.options,
-              symbol: question.pdf_metadata?.symbol,
-              originalType: originalType
+              symbol: question.pdf_metadata?.symbol
             });
             
             // Update answer type
