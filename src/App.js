@@ -14,8 +14,6 @@ function App() {
 
   const handleJsonImport = useCallback((jsonData) => {
     console.log('Imported JSON:', jsonData);
-  const handleJsonImport = useCallback((jsonData) => {
-    console.log('Imported JSON:', jsonData);
 
     // Normalize JSON structure - support both old and new formats
     let normalizedData = normalizeFormData(jsonData);
@@ -33,7 +31,6 @@ function App() {
     setFormData(normalizedData);
     setCurrentView('builder');
   }, []);
-    setCurrentView('builder');
   }, []);
 
   // Normalize form data to support both flat and hierarchical structures
