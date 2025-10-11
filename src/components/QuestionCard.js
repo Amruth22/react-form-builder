@@ -85,10 +85,14 @@ const QuestionCard = ({
             <div className="flex-1">
               {/* Question Header */}
               <div className="flex items-center space-x-2 mb-2 flex-wrap">
-                {/* Question Tag */}
-                {question.question_tag && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-primary-600 text-white border-2 border-primary-700">
-                    {question.question_tag}
+                {/* Question Tag - Show PDF field name if available, otherwise question_tag */}
+                {(question.pdf_metadata?.field_name || question.question_tag) && (
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 ${
+                    question.pdf_metadata?.field_name
+                      ? 'bg-indigo-600 text-white border-indigo-700'
+                      : 'bg-primary-600 text-white border-primary-700'
+                  }`}>
+                    {question.pdf_metadata?.field_name || question.question_tag}
                   </span>
                 )}
                 {/* Question Label */}
