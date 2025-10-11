@@ -84,14 +84,10 @@ const QuestionCard = ({
             <div className="flex-1">
               {/* Question Header */}
               <div className="flex items-center space-x-2 mb-2 flex-wrap">
-                {/* Question Tag - Show Claude's field_name or PDF metadata field_name */}
-                {(question.field_name || question.pdf_metadata?.field_name || question.question_tag) && (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 ${
-                    (question.field_name || question.pdf_metadata?.field_name)
-                      ? 'bg-indigo-600 text-white border-indigo-700'
-                      : 'bg-primary-600 text-white border-primary-700'
-                  }`}>
-                    {question.field_name || question.pdf_metadata?.field_name || question.question_tag}
+                {/* Question Tag - Show Claude's field_name or PDF metadata field_name ONLY */}
+                {(question.field_name || question.pdf_metadata?.field_name) && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 bg-indigo-600 text-white border-indigo-700">
+                    {question.pdf_metadata?.field_name || question.field_name}
                   </span>
                 )}
                 {/* Question Label */}
@@ -202,8 +198,14 @@ const QuestionCard = ({
                   </p>
                   <div className="pl-4 border-l-2 border-green-300 space-y-1.5">
                     {question.sub_questions.map((subQ, subIdx) => (
-                      <div key={subIdx} className="flex items-center space-x-2">
+                      <div key={subIdx} className="flex items-center space-x-2 flex-wrap">
                         <ChevronRight className="w-3 h-3 text-green-600 flex-shrink-0" />
+                        {/* Sub-Question Tag - Show field_name ONLY if from PDF or Claude */}
+                        {(subQ.field_name || subQ.pdf_metadata?.field_name) && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold font-mono border bg-indigo-500 text-white border-indigo-600">
+                            {subQ.pdf_metadata?.field_name || subQ.field_name}
+                          </span>
+                        )}
                         <span className="text-sm text-gray-800">{subQ.question || 'Untitled'}</span>
                         <span className="text-xs text-gray-500">({subQ.answer_type})</span>
                         {subQ.required && (

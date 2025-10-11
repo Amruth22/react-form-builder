@@ -235,20 +235,13 @@ export const enrichWithPdfMetadata = (formData, pdfExtractionData) => {
           if (!question.pdf_metadata) {
             question.pdf_metadata = {};
           }
-          
+
           // Add basic metadata
           question.pdf_metadata.page = page.page_number || pageIndex + 1;
-          
-          // Generate field name if not present
-          if (!question.pdf_metadata.field_name) {
-            const fieldName = question.question
-              .toLowerCase()
-              .replace(/[^a-z0-9\s]/g, '')
-              .replace(/\s+/g, '_')
-              .substring(0, 50);
-            question.pdf_metadata.field_name = fieldName || `field_${pageIndex}_${qIndex}`;
-          }
-          
+
+          // DO NOT auto-generate field_name - it should only come from actual PDF extraction
+          // If pdf_metadata.field_name doesn't exist, it means the PDF didn't have a field name
+
           // Add extraction timestamp
           if (!question.pdf_metadata.extracted_at) {
             question.pdf_metadata.extracted_at = new Date().toISOString();

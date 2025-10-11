@@ -15,15 +15,16 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [editingGroup, setEditingGroup] = useState(null);
   const [editingSection, setEditingSection] = useState(null);
-  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(null); // null = show all sections
   const [collapsedSections, setCollapsedSections] = useState({});
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [viewMode, setViewMode] = useState('all'); // 'all' or 'single'
 
   // Always use first page (since we merged all sections into one page)
   const currentPage = formData?.pages?.[0];
   const allSections = currentPage?.sections || [];
-  const currentSection = allSections[selectedSectionIndex];
+  const currentSection = selectedSectionIndex !== null ? allSections[selectedSectionIndex] : null;
 
   // Initialize all sections and groups as collapsed
   React.useEffect(() => {
@@ -381,6 +382,22 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* View All Sections Button */}
+              <button
+                onClick={() => setSelectedSectionIndex(null)}
+                className={`w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all mb-3 ${
+                  selectedSectionIndex === null
+                    ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-2 border-green-400 shadow-sm'
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-300'
+                }`}
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <Layers className="w-4 h-4" />
+                  <span>View All Sections</span>
+                </div>
+              </button>
+
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable droppableId="sections-sidebar" type="section">
                   {(provided) => (
@@ -511,6 +528,231 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                     Add Section
                   </button>
                 </div>
+              ) : selectedSectionIndex === null ? (
+                /* All Sections View - Display all sections with drag-drop support */
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <div className="space-y-4">
+                    {allSections.map((section, sectionIndex) => (
+                      <div key={`all-section-${sectionIndex}`} className="border-2 border-gray-300 rounded-lg bg-white shadow-sm">
+                        {/* Section Header */}
+                        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b-2 border-indigo-200 p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3 flex-1">
+                              <button
+                                onClick={() => toggleSection(sectionIndex)}
+                                className="text-gray-600 hover:text-gray-900 transition-colors"
+                              >
+                                {collapsedSections[`${sectionIndex}`] ? (
+                                  <ChevronRight className="w-5 h-5" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5" />
+                                )}
+                              </button>
+                              <Layers className="w-5 h-5 text-indigo-600" />
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {section.title}
+                              </h3>
+                              <span className="text-sm text-gray-600">
+                                ({section.groups?.length || 0} groups, {section.groups?.reduce((total, g) => total + (g.questions?.length || 0), 0) || 0} questions)
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => setSelectedSectionIndex(sectionIndex)}
+                                className="px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-primary-300"
+                                title="View only this section"
+                              >
+                                Focus
+                              </button>
+                              <button
+                                onClick={() => handleAddGroup(sectionIndex)}
+                                className="p-1.5 text-gray-400 hover:text-green-600 rounded hover:bg-green-50"
+                                title="Add group to this section"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                              {allSections.length > 1 && (
+                                <button
+                                  onClick={() => handleDeleteSection(sectionIndex)}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
+                                  title="Delete section"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section Content - Groups */}
+                        {!collapsedSections[`${sectionIndex}`] && (
+                          <div className="p-3">
+                            <Droppable droppableId={`section-0-section-${sectionIndex}`} type="group">
+                              {(provided) => (
+                                <div
+                                  {...provided.droppableProps}
+                                  ref={provided.innerRef}
+                                  className="space-y-3"
+                                >
+                                  {section.groups?.length === 0 ? (
+                                    <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                                      <FolderOpen className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                      <p className="text-sm text-gray-500 mb-2">No groups in this section</p>
+                                      <button
+                                        onClick={() => handleAddGroup(sectionIndex)}
+                                        className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                                      >
+                                        Add Group
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    section.groups.map((group, groupIndex) => (
+                                      <Draggable
+                                        key={`group-${sectionIndex}-${groupIndex}`}
+                                        draggableId={`group-${sectionIndex}-${groupIndex}`}
+                                        index={groupIndex}
+                                      >
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            className={`border rounded-lg ${snapshot.isDragging ? 'border-primary-400 shadow-lg scale-105' : 'border-gray-200'}`}
+                                          >
+                                            {/* Group Header */}
+                                            <div className="bg-blue-50 border-b border-blue-200 p-2.5">
+                                              <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3 flex-1">
+                                                  <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
+                                                    <GripVertical className="w-4 h-4 text-gray-400" />
+                                                  </div>
+                                                  <button
+                                                    onClick={() => toggleGroup(sectionIndex, groupIndex)}
+                                                    className="text-gray-600 hover:text-gray-900"
+                                                  >
+                                                    {collapsedGroups[`${sectionIndex}-${groupIndex}`] ? (
+                                                      <ChevronRight className="w-4 h-4" />
+                                                    ) : (
+                                                      <ChevronDown className="w-4 h-4" />
+                                                    )}
+                                                  </button>
+                                                  <FolderOpen className="w-4 h-4 text-blue-600" />
+                                                  <span className="font-medium text-gray-900">
+                                                    {group.title}
+                                                  </span>
+                                                  {group.repeatable && (
+                                                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                                                      <Copy className="w-3 h-3 inline mr-1" />
+                                                      Repeatable
+                                                    </span>
+                                                  )}
+                                                  <span className="text-sm text-gray-500">
+                                                    ({group.questions?.length || 0} questions)
+                                                  </span>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                  <button
+                                                    onClick={() => setEditingGroup({ group, path: { pageIndex: 0, sectionIndex, groupIndex } })}
+                                                    className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-primary-50"
+                                                  >
+                                                    <Edit3 className="w-3.5 h-3.5" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleAddQuestion(sectionIndex, groupIndex)}
+                                                    className="p-1.5 text-gray-400 hover:text-green-600 rounded hover:bg-green-50"
+                                                  >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleDeleteGroup(sectionIndex, groupIndex)}
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
+                                                  >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            {/* Questions */}
+                                            {!collapsedGroups[`${sectionIndex}-${groupIndex}`] && (
+                                              <div className="p-2">
+                                                {group.questions?.length === 0 ? (
+                                                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
+                                                    <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                                    <p className="text-sm text-gray-500 mb-2">No questions yet</p>
+                                                    <button
+                                                      onClick={() => handleAddQuestion(sectionIndex, groupIndex)}
+                                                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                                                    >
+                                                      Add Question
+                                                    </button>
+                                                  </div>
+                                                ) : (
+                                                  <Droppable
+                                                    droppableId={`section-0-section-${sectionIndex}-group-${groupIndex}`}
+                                                    type="question"
+                                                  >
+                                                    {(provided) => (
+                                                      <div
+                                                        {...provided.droppableProps}
+                                                        ref={provided.innerRef}
+                                                        className="space-y-2"
+                                                      >
+                                                        {group.questions.map((question, questionIndex) => (
+                                                          <Draggable
+                                                            key={`question-${sectionIndex}-${groupIndex}-${questionIndex}`}
+                                                            draggableId={`question-${sectionIndex}-${groupIndex}-${questionIndex}`}
+                                                            index={questionIndex}
+                                                          >
+                                                            {(provided, snapshot) => (
+                                                              <div
+                                                                ref={provided.innerRef}
+                                                                {...provided.draggableProps}
+                                                              >
+                                                                <QuestionCard
+                                                                  question={question}
+                                                                  index={questionIndex}
+                                                                  isDragging={snapshot.isDragging}
+                                                                  dragHandleProps={provided.dragHandleProps}
+                                                                  sectionTitle={section.title}
+                                                                  groupTitle={group.title}
+                                                                  isRepeatable={group.repeatable}
+                                                                  onEdit={() => setEditingQuestion({
+                                                                    question,
+                                                                    path: { pageIndex: 0, sectionIndex, groupIndex, questionIndex }
+                                                                  })}
+                                                                  onDelete={() => handleQuestionDelete({
+                                                                    pageIndex: 0,
+                                                                    sectionIndex,
+                                                                    groupIndex,
+                                                                    questionIndex
+                                                                  })}
+                                                                />
+                                                              </div>
+                                                            )}
+                                                          </Draggable>
+                                                        ))}
+                                                        {provided.placeholder}
+                                                      </div>
+                                                    )}
+                                                  </Droppable>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    ))
+                                  )}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </DragDropContext>
               ) : currentSection ? (
                 <DragDropContext onDragEnd={handleDragEnd}>
                   {/* Show groups directly without section wrapper */}

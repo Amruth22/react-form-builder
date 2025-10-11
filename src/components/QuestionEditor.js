@@ -47,7 +47,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
     if (question) {
       setFormData({
         question: question.question || '',
-        question_tag: question.question_tag || question.field_name || question.pdf_metadata?.field_name || '',
+        question_tag: question.pdf_metadata?.field_name || question.field_name || '',
         question_label: question.question_label || '',
         answer_type: question.answer_type || 'text',
         required: question.required || false,
@@ -301,7 +301,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </label>
               <input
                 type="text"
-                value={formData.question_tag || question.field_name || question.pdf_metadata?.field_name || ''}
+                value={formData.question_tag}
                 onChange={(e) => handleInputChange('question_tag', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm ${
                   (question.field_name || question.pdf_metadata?.field_name)
@@ -438,32 +438,54 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 {formData.options.map((option, index) => {
                   const optionValue = typeof option === 'string' ? option : option.value || '';
                   const optionLabel = typeof option === 'string' ? option : option.label || '';
+                  const optionFieldName = typeof option === 'object' ? option.field_name || '' : '';
                   const requiresInput = typeof option === 'object' ? option.requires_input : false;
                   const inputType = typeof option === 'object' ? option.input_type || 'text' : 'text';
 
                   return (
                     <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          value={optionLabel}
-                          onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          placeholder={`Option ${index + 1} label`}
-                        />
-                        <input
-                          type="text"
-                          value={optionValue}
-                          onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                          placeholder={`Option ${index + 1} value`}
-                        />
-                        <button
-                          onClick={() => handleRemoveOption(index)}
-                          className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Label</label>
+                          <input
+                            type="text"
+                            value={optionLabel}
+                            onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            placeholder="Display text"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Value</label>
+                          <input
+                            type="text"
+                            value={optionValue}
+                            onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                            placeholder="Internal value"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Field Name (PDF)</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={optionFieldName}
+                              onChange={(e) => handleOptionChange(index, 'field_name', e.target.value)}
+                              className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm font-mono ${
+                                optionFieldName ? 'border-indigo-300 bg-indigo-50' : 'border-gray-300'
+                              }`}
+                              placeholder="PDF field"
+                            />
+                            <button
+                              onClick={() => handleRemoveOption(index)}
+                              className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors duration-200"
+                              title="Remove option"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Conditional Input */}
@@ -877,7 +899,13 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 {formData.sub_questions && formData.sub_questions.length > 0 && (
                   <div className="space-y-2">
                     {formData.sub_questions.map((subQ, index) => (
-                      <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-green-300 transition-colors">
+                      <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-green-300 transition-colors flex-wrap">
+                        {/* Sub-Question Tag - Only show if from PDF or Claude */}
+                        {(subQ.field_name || subQ.pdf_metadata?.field_name) && (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono border bg-indigo-500 text-white border-indigo-600">
+                            {subQ.pdf_metadata?.field_name || subQ.field_name}
+                          </span>
+                        )}
                         <span className="flex-1 text-sm font-medium text-gray-900">{subQ.question || 'Untitled'}</span>
                         <span className="text-xs px-2 py-1 bg-white rounded border border-gray-300">{subQ.answer_type}</span>
                         {subQ.required && (
@@ -962,6 +990,29 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
             </div>
 
             <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sub-Question Tag {(editingSubQuestion.subQuestion.field_name || editingSubQuestion.subQuestion.pdf_metadata?.field_name) ? '(from PDF)' : ''}
+                </label>
+                <input
+                  type="text"
+                  value={editingSubQuestion.subQuestion.pdf_metadata?.field_name || editingSubQuestion.subQuestion.field_name || ''}
+                  onChange={(e) => setEditingSubQuestion(prev => ({
+                    ...prev,
+                    subQuestion: { ...prev.subQuestion, question_tag: e.target.value }
+                  }))}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-sm ${
+                    (editingSubQuestion.subQuestion.field_name || editingSubQuestion.subQuestion.pdf_metadata?.field_name)
+                      ? 'border-indigo-300 bg-indigo-50'
+                      : 'border-gray-300'
+                  }`}
+                  placeholder="e.g., Q1_A, FIRST_NAME, etc."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Short identifier for this sub-question
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Sub-Question Text
