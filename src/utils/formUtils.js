@@ -375,6 +375,184 @@ export const shouldQuestionBeVisible = (question, parentAnswer, formValues) => {
 };
 
 /**
+
+/**
+ * Generate a smart label from question text
+ * Extracts key information and formats it nicely
+ */
+export const generateLabelFromQuestion = (questionText) => {
+  if (!questionText || typeof questionText !== 'string') {
+    return 'Untitled Question';
+  }
+
+  // Remove common prefixes and clean up
+  let label = questionText
+    .replace(/^(Please\s+)?(enter|provide|select|choose|indicate|specify)\s+/i, '')
+    .replace(/[:\?]+$/, '') // Remove trailing colons and question marks
+    .replace(/\([^)]*\)/g, '') // Remove parenthetical content
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim();
+
+  // Take first 50 characters
+  if (label.length > 50) {
+    label = label.substring(0, 50).trim();
+    // Try to end at a word boundary
+    const lastSpace = label.lastIndexOf(' ');
+    if (lastSpace > 30) {
+      label = label.substring(0, lastSpace);
+    }
+  }
+
+  // Title case the label
+  label = label
+    .split(' ')
+    .map(word => {
+      // Keep acronyms uppercase
+      if (word === word.toUpperCase() && word.length > 1) {
+        return word;
+      }
+      // Title case normal words
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
+
+  return label || 'Untitled Question';
+};
+
+/**
+ * Generate question tag based on hierarchical position
+ * Format: P{page}_S{section}_G{group}_Q{question}
+ */
+export const generateQuestionTag = (pageIndex, sectionIndex, groupIndex, questionIndex, prefix = '') => {
+  const tag = `P${pageIndex + 1}_S${sectionIndex + 1}_G${groupIndex + 1}_Q${questionIndex + 1}`;
+  return prefix ? `${prefix}_${tag}` : tag;
+};
+
+/**
+ * Generate tags and labels for all questions in the form
+ * Only generates if they don't already exist
+ */
+export const generateQuestionTags = (formData, options = {}) => {
+  const {
+    prefix = '', // Optional prefix for all tags (e.g., 'APP')
+    forceRegenerate = false, // If true, regenerate even if tags exist
+    generateLabels = true // If true, also generate labels
+  } = options;
+
+  const newFormData = JSON.parse(JSON.stringify(formData)); // Deep clone
+  let tagsGenerated = 0;
+  let labelsGenerated = 0;
+
+  newFormData.pages?.forEach((page, pageIndex) => {
+    page.sections?.forEach((section, sectionIndex) => {
+      section.groups?.forEach((group, groupIndex) => {
+        group.questions?.forEach((question, questionIndex) => {
+          // Generate tag if not present or force regenerate
+          if (!question.question_tag || forceRegenerate) {
+            question.question_tag = generateQuestionTag(
+              pageIndex,
+              sectionIndex,
+              groupIndex,
+              questionIndex,
+              prefix
+            );
+            tagsGenerated++;
+          }
+
+          // Generate label if not present and generateLabels is true
+          if (generateLabels && (!question.question_label || forceRegenerate)) {
+            question.question_label = generateLabelFromQuestion(question.question);
+            labelsGenerated++;
+          }
+        });
+      });
+    });
+  });
+
+  // Add metadata about tag generation
+  if (!newFormData.document_info) {
+    newFormData.document_info = {};
+  }
+  
+  newFormData.document_info.tags_auto_generated = true;
+  newFormData.document_info.tags_generated_at = new Date().toISOString();
+  newFormData.document_info.tag_prefix = prefix || 'none';
+
+  console.log(`Auto-generated ${tagsGenerated} question tags and ${labelsGenerated} labels`);
+
+  return newFormData;
+};
+
+/**
+ * Regenerate all question tags (useful after reorganizing form structure)
+ */
+export const regenerateAllTags = (formData, prefix = '') => {
+  return generateQuestionTags(formData, {
+    prefix,
+    forceRegenerate: true,
+    generateLabels: false // Don't regenerate labels, only tags
+  });
+};
+
+/**
+ * Validate that all questions have tags and labels
+ * Returns an object with validation results
+ */
+export const validateQuestionTags = (formData) => {
+  const results = {
+    valid: true,
+    missingTags: [],
+    missingLabels: [],
+    duplicateTags: [],
+    totalQuestions: 0
+  };
+
+  const tagMap = new Map();
+
+  formData.pages?.forEach((page, pageIndex) => {
+    page.sections?.forEach((section, sectionIndex) => {
+      section.groups?.forEach((group, groupIndex) => {
+        group.questions?.forEach((question, questionIndex) => {
+          results.totalQuestions++;
+
+          const path = `P${pageIndex + 1}_S${sectionIndex + 1}_G${groupIndex + 1}_Q${questionIndex + 1}`;
+
+          // Check for missing tag
+          if (!question.question_tag) {
+            results.valid = false;
+            results.missingTags.push({
+              path,
+              question: question.question?.substring(0, 50) || 'Untitled'
+            });
+          } else {
+            // Check for duplicate tags
+            if (tagMap.has(question.question_tag)) {
+              results.valid = false;
+              results.duplicateTags.push({
+                tag: question.question_tag,
+                paths: [tagMap.get(question.question_tag), path]
+              });
+            } else {
+              tagMap.set(question.question_tag, path);
+            }
+          }
+
+          // Check for missing label
+          if (!question.question_label) {
+            results.missingLabels.push({
+              path,
+              tag: question.question_tag || 'N/A',
+              question: question.question?.substring(0, 50) || 'Untitled'
+            });
+          }
+        });
+      });
+    });
+  });
+
+  return results;
+};
+
  * Ensure all questions have unique IDs
  */
 export const ensureQuestionIds = (formData) => {
