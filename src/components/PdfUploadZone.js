@@ -102,17 +102,58 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
     }
   };
 
+  const processJson = async (file) => {
+    setIsProcessing(true);
+    setError(null);
+    setSuccess(null);
+    setProgress('Reading JSON file...');
+
+    try {
+      const text = await file.text();
+      const jsonData = JSON.parse(text);
+
+      setProgress('Loading form data...');
+
+      // Success!
+      setSuccess({
+        filename: file.name,
+        pages: jsonData.pages?.length || 0,
+        elements: jsonData.pages?.reduce((total, page) =>
+          total + (page.sections?.reduce((sTotal, section) =>
+            sTotal + (section.groups?.reduce((gTotal, group) =>
+              gTotal + (group.questions?.length || 0), 0) || 0), 0) || 0), 0) || 0,
+        structure: { sections: jsonData.pages?.[0]?.sections?.length || 0 }
+      });
+
+      setProgress('Complete! Loading form builder...');
+
+      // Pass JSON to parent component
+      setTimeout(() => {
+        onJsonReceived(jsonData);
+      }, 500);
+
+    } catch (err) {
+      console.error('JSON processing error:', err);
+      setError(err.message || 'Failed to process JSON file');
+      setIsProcessing(false);
+      setProgress(null);
+    }
+  };
+
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     const pdfFile = files.find(file => file.type === 'application/pdf');
-    
+    const jsonFile = files.find(file => file.type === 'application/json' || file.name.endsWith('.json'));
+
     if (pdfFile) {
       processPdf(pdfFile);
+    } else if (jsonFile) {
+      processJson(jsonFile);
     } else {
-      setError('Please upload a PDF file');
+      setError('Please upload a PDF or JSON file');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -121,8 +162,10 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
       processPdf(file);
+    } else if (file && (file.type === 'application/json' || file.name.endsWith('.json'))) {
+      processJson(file);
     } else {
-      setError('Please select a PDF file');
+      setError('Please select a PDF or JSON file');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -161,7 +204,7 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf"
+              accept=".pdf,.json"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -172,11 +215,11 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
               </div>
 
               <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                Upload Your PDF Form
+                Upload Your Form
               </h1>
 
               <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
-                Drag and drop your PDF file here, or click the button below
+                Drag and drop your PDF or JSON file here, or click the button below
               </p>
             </div>
 
@@ -185,11 +228,11 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 pointer-events-auto relative z-10"
             >
               <Upload className="w-6 h-6 mr-3" />
-              Select PDF File
+              Select PDF or JSON File
             </button>
 
             <p className="text-sm text-gray-500 mt-8">
-              AI will automatically extract all form fields from your PDF
+              Upload a PDF for AI extraction or import an existing JSON form structure
             </p>
           </div>
         )}
