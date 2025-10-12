@@ -31,6 +31,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
     parent_question_id: null,
     parent_question_text: null,
     parent_question_label: null,
+    parent_question_tag: null,
     show_when: null,
     sub_questions: [],
     applies_to: []
@@ -57,6 +58,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
         parent_question_id: question.parent_question_id || null,
         parent_question_text: question.parent_question_text || null,
         parent_question_label: question.parent_question_label || null,
+        parent_question_tag: question.parent_question_tag || null,
         show_when: question.show_when || null,
         sub_questions: question.sub_questions || [],
         applies_to: question.applies_to || []
@@ -96,12 +98,13 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
       if (parentQ && parentQ.question.options) {
         setParentQuestionOptions(parentQ.question.options);
 
-        // Store parent question text for display purposes
+        // Store parent question text and tag for display purposes
         if (!formData.parent_question_text) {
           setFormData(prev => ({
             ...prev,
             parent_question_text: parentQ.question.question,
-            parent_question_label: parentQ.question.question_label || parentQ.question.question
+            parent_question_label: parentQ.question.question_label || parentQ.question.question,
+            parent_question_tag: parentQ.question.pdf_metadata?.field_name || parentQ.question.field_name || parentQ.id
           }));
         }
       } else {
@@ -733,11 +736,14 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">No parent (always visible)</option>
-                    {availableParentQuestions.map(q => (
-                      <option key={q.id} value={q.id}>
-                        {q.question.question} ({q.pageTitle} → {q.sectionTitle} → {q.groupTitle})
-                      </option>
-                    ))}
+                    {availableParentQuestions.map(q => {
+                      const tag = q.question.pdf_metadata?.field_name || q.question.field_name || '';
+                      return (
+                        <option key={q.id} value={q.id}>
+                          {tag ? `[${tag}] ` : ''}{q.question.question} ({q.sectionTitle} → {q.groupTitle})
+                        </option>
+                      );
+                    })}
                   </select>
                   {availableParentQuestions.length === 0 && (
                     <p className="text-xs text-gray-500 mt-1">

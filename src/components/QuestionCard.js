@@ -16,7 +16,8 @@ import {
   FileType,
   ChevronRight,
   Users,
-  MoveRight
+  MoveRight,
+  Link
 } from 'lucide-react';
 
 const QuestionCard = ({
@@ -186,10 +187,59 @@ const QuestionCard = ({
                 </div>
               )}
 
+              {/* Parent Question Dependency */}
+              {question.parent_question_id && (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                    <Link className="w-3 h-3 mr-1" />
+                    Parent Question
+                  </span>
+                  {question.parent_question_tag && (
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700">
+                      {question.parent_question_tag}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Validation Info */}
               {question.validation && Object.keys(question.validation).length > 0 && (
-                <div className="text-sm text-gray-600 mt-2">
-                  <span className="font-medium">Validation:</span> {question.validation.type || 'Custom'}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {question.validation.minLength && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      Min Length: {question.validation.minLength}
+                    </span>
+                  )}
+                  {question.validation.maxLength && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      Max Length: {question.validation.maxLength}
+                    </span>
+                  )}
+                  {question.validation.min && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      Min Value: {question.validation.min}
+                    </span>
+                  )}
+                  {question.validation.max && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      Max Value: {question.validation.max}
+                    </span>
+                  )}
+                  {question.validation.pattern && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      Pattern: {question.validation.pattern}
+                    </span>
+                  )}
+                  {question.validation.accept && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                      File Types: {question.validation.accept}
+                    </span>
+                  )}
+                  {question.validation.maxSize && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                      Max Size: {question.validation.maxSize}MB
+                    </span>
+                  )}
                 </div>
               )}
 

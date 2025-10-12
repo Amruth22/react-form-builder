@@ -485,6 +485,13 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                     {section.groups?.length || 0} groups
                                   </div>
                                 </button>
+                                <button
+                                  onClick={() => setEditingSection({ section, path: { sectionIndex: index } })}
+                                  className="p-2 mr-1 text-gray-400 hover:text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Edit section name"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
                                 {allSections.length > 1 && (
                                   <button
                                     onClick={() => handleDeleteSection(index)}
@@ -598,6 +605,13 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                 title="View only this section"
                               >
                                 Focus
+                              </button>
+                              <button
+                                onClick={() => setEditingSection({ section, path: { sectionIndex } })}
+                                className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-primary-50"
+                                title="Edit section name"
+                              >
+                                <Edit3 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleAddGroup(sectionIndex)}
