@@ -272,15 +272,37 @@ export const deleteGroup = (formData, pageIndex, sectionIndex, groupIndex) => {
 
 /**
  * Generate unique question ID
+ * Format matches JSON: page_{pageNum}_section_{sectionNum}_group_{groupNum}_q_{questionNum}
+ * All indices are 1-based to match the JSON format
  */
 export const generateQuestionId = (pageIndex, sectionIndex, groupIndex, questionIndex) => {
-  return `q_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}`;
+  return `page_${pageIndex + 1}_section_${sectionIndex}_group_${groupIndex}_q_${questionIndex}`;
 };
 
 /**
  * Parse question ID to get path
+ * Handles both formats:
+ * - New: page_1_section_0_group_0_q_0
+ * - Old: q_0_0_0_0
  */
 export const parseQuestionId = (questionId) => {
+  if (!questionId) return null;
+
+  // Handle new format: page_1_section_0_group_0_q_0
+  if (questionId.startsWith('page_')) {
+    const parts = questionId.split('_');
+    // Format: ['page', '1', 'section', '0', 'group', '0', 'q', '0']
+    if (parts.length !== 8) return null;
+
+    return {
+      pageIndex: parseInt(parts[1]) - 1, // Convert back to 0-indexed
+      sectionIndex: parseInt(parts[3]),
+      groupIndex: parseInt(parts[5]),
+      questionIndex: parseInt(parts[7])
+    };
+  }
+
+  // Handle old format: q_0_0_0_0
   const parts = questionId.split('_');
   if (parts.length !== 5 || parts[0] !== 'q') return null;
 

@@ -3,7 +3,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Download, Plus, Trash2, Edit3, GripVertical,
   ChevronDown, ChevronRight, Layers, FolderOpen,
-  FileText, Copy, FileSpreadsheet, Maximize2, Minimize2
+  FileText, Copy, FileSpreadsheet, Maximize2, Minimize2, MoveRight
 } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import QuestionEditor from './QuestionEditor';
@@ -19,6 +19,8 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
   const [collapsedSections, setCollapsedSections] = useState({});
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [movingQuestion, setMovingQuestion] = useState(null); // { sectionIndex, groupIndex, questionIndex }
+  const [movingGroup, setMovingGroup] = useState(null); // { sectionIndex, groupIndex }
 
   // Always use first page (since we merged all sections into one page)
   const currentPage = formData?.pages?.[0];
@@ -293,6 +295,38 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     newFormData.pages[0].sections.splice(sectionIndex, 1);
 
     onFormDataChange(newFormData);
+  }, [formData, onFormDataChange]);
+
+  const handleMoveQuestionToSection = useCallback((fromSectionIndex, fromGroupIndex, questionIndex, toSectionIndex, toGroupIndex) => {
+    const newFormData = JSON.parse(JSON.stringify(formData));
+
+    // Get the question
+    const question = newFormData.pages[0].sections[fromSectionIndex].groups[fromGroupIndex].questions[questionIndex];
+
+    // Remove from source
+    newFormData.pages[0].sections[fromSectionIndex].groups[fromGroupIndex].questions.splice(questionIndex, 1);
+
+    // Add to destination
+    newFormData.pages[0].sections[toSectionIndex].groups[toGroupIndex].questions.push(question);
+
+    onFormDataChange(newFormData);
+    setMovingQuestion(null);
+  }, [formData, onFormDataChange]);
+
+  const handleMoveGroupToSection = useCallback((fromSectionIndex, groupIndex, toSectionIndex) => {
+    const newFormData = JSON.parse(JSON.stringify(formData));
+
+    // Get the group
+    const group = newFormData.pages[0].sections[fromSectionIndex].groups[groupIndex];
+
+    // Remove from source
+    newFormData.pages[0].sections[fromSectionIndex].groups.splice(groupIndex, 1);
+
+    // Add to destination
+    newFormData.pages[0].sections[toSectionIndex].groups.push(group);
+
+    onFormDataChange(newFormData);
+    setMovingGroup(null);
   }, [formData, onFormDataChange]);
 
   const handleExport = useCallback(() => {
@@ -651,6 +685,15 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                   </span>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
+                                                  {allSections.length > 1 && (
+                                                    <button
+                                                      onClick={() => setMovingGroup({ sectionIndex, groupIndex })}
+                                                      className="p-1.5 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50"
+                                                      title="Move group to another section"
+                                                    >
+                                                      <MoveRight className="w-3.5 h-3.5" />
+                                                    </button>
+                                                  )}
                                                   <button
                                                     onClick={() => setEditingGroup({ group, path: { pageIndex: 0, sectionIndex, groupIndex } })}
                                                     className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-primary-50"
@@ -727,6 +770,8 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                                     groupIndex,
                                                                     questionIndex
                                                                   })}
+                                                                  onMove={() => setMovingQuestion({ sectionIndex, groupIndex, questionIndex })}
+                                                                  allSections={allSections}
                                                                 />
                                                               </div>
                                                             )}
@@ -808,6 +853,15 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                         </span>
                                                       </div>
                                                       <div className="flex items-center space-x-2">
+                                                        {allSections.length > 1 && (
+                                                          <button
+                                                            onClick={() => setMovingGroup({ sectionIndex: selectedSectionIndex, groupIndex })}
+                                                            className="p-1.5 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50"
+                                                            title="Move group to another section"
+                                                          >
+                                                            <MoveRight className="w-3.5 h-3.5" />
+                                                          </button>
+                                                        )}
                                                         <button
                                                           onClick={() => setEditingGroup({ group, path: { pageIndex: 0, sectionIndex: selectedSectionIndex, groupIndex } })}
                                                           className="p-1.5 text-gray-400 hover:text-primary-600 rounded hover:bg-primary-50"
@@ -884,6 +938,8 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                                           groupIndex,
                                                                           questionIndex
                                                                         })}
+                                                                        onMove={() => setMovingQuestion({ sectionIndex: selectedSectionIndex, groupIndex, questionIndex })}
+                                                                        allSections={allSections}
                                                                       />
                                                                     </div>
                                                                   )}
@@ -941,6 +997,41 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
           section={editingSection.section}
           onSave={(updatedSection) => handleSectionUpdate(editingSection.path, updatedSection)}
           onCancel={() => setEditingSection(null)}
+        />
+      )}
+
+      {/* Move Question Modal */}
+      {movingQuestion && (
+        <MoveModal
+          title="Move Question to Section"
+          allSections={allSections}
+          onMove={(toSectionIndex, toGroupIndex) => {
+            handleMoveQuestionToSection(
+              movingQuestion.sectionIndex,
+              movingQuestion.groupIndex,
+              movingQuestion.questionIndex,
+              toSectionIndex,
+              toGroupIndex
+            );
+          }}
+          onCancel={() => setMovingQuestion(null)}
+        />
+      )}
+
+      {/* Move Group Modal */}
+      {movingGroup && (
+        <MoveModal
+          title="Move Group to Section"
+          allSections={allSections}
+          onMove={(toSectionIndex) => {
+            handleMoveGroupToSection(
+              movingGroup.sectionIndex,
+              movingGroup.groupIndex,
+              toSectionIndex
+            );
+          }}
+          onCancel={() => setMovingGroup(null)}
+          isGroup={true}
         />
       )}
     </div>
@@ -1036,6 +1127,109 @@ const SectionEditor = ({ section, onSave, onCancel }) => {
           </button>
           <button onClick={() => onSave({ title })} className="btn-primary">
             Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Move Modal Component
+const MoveModal = ({ title, allSections, onMove, onCancel, isGroup = false }) => {
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState(null);
+
+  const handleMove = () => {
+    if (selectedSectionIndex === null) {
+      alert('Please select a section');
+      return;
+    }
+    if (!isGroup && selectedGroupIndex === null) {
+      alert('Please select a group');
+      return;
+    }
+
+    if (isGroup) {
+      onMove(selectedSectionIndex);
+    } else {
+      onMove(selectedSectionIndex, selectedGroupIndex);
+    }
+  };
+
+  const selectedSection = selectedSectionIndex !== null ? allSections[selectedSectionIndex] : null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+            <Edit3 className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Destination Section
+            </label>
+            <select
+              value={selectedSectionIndex !== null ? selectedSectionIndex : ''}
+              onChange={(e) => {
+                const index = e.target.value === '' ? null : parseInt(e.target.value);
+                setSelectedSectionIndex(index);
+                setSelectedGroupIndex(null); // Reset group selection when section changes
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="">-- Select Section --</option>
+              {allSections.map((section, index) => (
+                <option key={index} value={index}>
+                  {section.title} ({section.groups?.length || 0} groups)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {!isGroup && selectedSection && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Destination Group
+              </label>
+              <select
+                value={selectedGroupIndex !== null ? selectedGroupIndex : ''}
+                onChange={(e) => {
+                  const index = e.target.value === '' ? null : parseInt(e.target.value);
+                  setSelectedGroupIndex(index);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">-- Select Group --</option>
+                {selectedSection.groups?.map((group, index) => (
+                  <option key={index} value={index}>
+                    {group.title} ({group.questions?.length || 0} questions)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              {isGroup
+                ? 'The group and all its questions will be moved to the selected section.'
+                : 'The question will be moved to the selected group in the target section.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
+          <button onClick={onCancel} className="btn-secondary">
+            Cancel
+          </button>
+          <button onClick={handleMove} className="btn-primary flex items-center space-x-2">
+            <MoveRight className="w-4 h-4" />
+            <span>Move</span>
           </button>
         </div>
       </div>

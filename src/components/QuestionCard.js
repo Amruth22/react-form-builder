@@ -15,7 +15,8 @@ import {
   MessageSquare,
   FileType,
   ChevronRight,
-  Users
+  Users,
+  MoveRight
 } from 'lucide-react';
 
 const QuestionCard = ({
@@ -27,7 +28,9 @@ const QuestionCard = ({
   groupTitle,
   isRepeatable,
   onEdit,
-  onDelete
+  onDelete,
+  onMove,
+  allSections
 }) => {
   const getQuestionIcon = (answerType) => {
     const iconMap = {
@@ -222,6 +225,15 @@ const QuestionCard = ({
 
             {/* Actions */}
             <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              {onMove && allSections && allSections.length > 1 && (
+                <button
+                  onClick={onMove}
+                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                  title="Move to another section"
+                >
+                  <MoveRight className="w-4 h-4" />
+                </button>
+              )}
               <button
                 onClick={onEdit}
                 className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200"
