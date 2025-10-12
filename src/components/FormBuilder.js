@@ -19,7 +19,6 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
   const [collapsedSections, setCollapsedSections] = useState({});
   const [collapsedGroups, setCollapsedGroups] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
-  const [viewMode, setViewMode] = useState('all'); // 'all' or 'single'
 
   // Always use first page (since we merged all sections into one page)
   const currentPage = formData?.pages?.[0];
@@ -127,9 +126,11 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
     // Parse droppable IDs for other types (simplified - no pageIndex needed)
     const parseDroppableId = (id) => {
       const parts = id.split('-');
+      // Format: section-0-section-{sectionIndex}-group-{groupIndex}
+      // parts[0] = 'section', parts[1] = '0', parts[2] = 'section', parts[3] = sectionIndex, parts[4] = 'group', parts[5] = groupIndex
       return {
-        sectionIndex: parts[1] ? parseInt(parts[1]) : null,
-        groupIndex: parts[3] ? parseInt(parts[3]) : null
+        sectionIndex: parts[3] ? parseInt(parts[3]) : null,
+        groupIndex: parts[5] ? parseInt(parts[5]) : null
       };
     };
 
