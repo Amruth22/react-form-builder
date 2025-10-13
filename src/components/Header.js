@@ -13,10 +13,14 @@ const Header = ({ currentView, onViewChange, onReset, hasData }) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <button
+            onClick={() => onViewChange('import')}
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            title="Go to home page"
+          >
             <FileText className="w-8 h-8 text-primary-600" />
             <h1 className="text-xl font-bold text-gray-900">Form Builder</h1>
-          </div>
+          </button>
 
           {/* Navigation */}
           <nav className="flex items-center space-x-1">

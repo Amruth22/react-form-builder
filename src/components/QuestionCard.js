@@ -146,19 +146,24 @@ const QuestionCard = ({
                   <p className="text-sm text-gray-600 mb-1">
                     {question.answer_type === 'radio_multi_person' ? 'Choices (for each person):' : 'Options:'}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-2">
                     {question.options.slice(0, 3).map((option, optIndex) => {
-                      const optionLabel = typeof option === 'string' 
-                        ? option 
+                      const optionLabel = typeof option === 'string'
+                        ? option
                         : option.label || option.value || option;
-                      
+                      const optionFieldName = typeof option === 'object' ? option.field_name : null;
+
                       return (
-                        <span
-                          key={optIndex}
-                          className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"
-                        >
-                          {optionLabel}
-                        </span>
+                        <div key={optIndex} className="inline-flex items-center gap-1">
+                          {optionFieldName && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold font-mono bg-indigo-500 text-white border border-indigo-600">
+                              {optionFieldName}
+                            </span>
+                          )}
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
+                            {optionLabel}
+                          </span>
+                        </div>
                       );
                     })}
                     {question.options.length > 3 && (
@@ -190,52 +195,63 @@ const QuestionCard = ({
               {/* Parent Question Dependency */}
               {question.parent_question_id && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300">
+                  <span
+                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300"
+                    title={question.parent_question_text ? `Depends on: ${question.parent_question_text}` : 'Has parent question dependency'}
+                  >
                     <Link className="w-3 h-3 mr-1" />
                     Parent Question
                   </span>
                   {question.parent_question_tag && (
-                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700">
+                    <span
+                      className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700"
+                      title={question.parent_question_text || 'Parent question tag'}
+                    >
                       {question.parent_question_tag}
                     </span>
                   )}
                 </div>
               )}
 
-              {/* Validation Info */}
-              {question.validation && Object.keys(question.validation).length > 0 && (
+              {/* Length and Validation Info */}
+              {(question.length || (question.validation && Object.keys(question.validation).length > 0)) && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {question.validation.minLength && (
+                  {question.length && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                      Length: {question.length} chars
+                    </span>
+                  )}
+                  {question.validation?.minLength && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       Min Length: {question.validation.minLength}
                     </span>
                   )}
-                  {question.validation.maxLength && (
+                  {question.validation?.maxLength && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       Max Length: {question.validation.maxLength}
                     </span>
                   )}
-                  {question.validation.min && (
+                  {question.validation?.min && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       Min Value: {question.validation.min}
                     </span>
                   )}
-                  {question.validation.max && (
+                  {question.validation?.max && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       Max Value: {question.validation.max}
                     </span>
                   )}
-                  {question.validation.pattern && (
+                  {question.validation?.pattern && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                       Pattern: {question.validation.pattern}
                     </span>
                   )}
-                  {question.validation.accept && (
+                  {question.validation?.accept && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                       File Types: {question.validation.accept}
                     </span>
                   )}
-                  {question.validation.maxSize && (
+                  {question.validation?.maxSize && (
                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                       Max Size: {question.validation.maxSize}MB
                     </span>

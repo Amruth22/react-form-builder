@@ -25,6 +25,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
     question_label: '',
     answer_type: 'text',
     required: false,
+    length: '',
     options: [],
     validation: {},
     auto_detected: null,
@@ -52,6 +53,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
         question_label: question.question_label || '',
         answer_type: question.answer_type || 'text',
         required: question.required || false,
+        length: question.length || '',
         options: question.options || [],
         validation: question.validation || {},
         auto_detected: question.auto_detected || null,
@@ -348,22 +350,40 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
             />
           </div>
 
-          {/* Question Type */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Question Type
-            </label>
-            <select
-              value={formData.answer_type}
-              onChange={(e) => handleInputChange('answer_type', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              {questionTypes.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
+          {/* Question Type and Length */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Question Type
+              </label>
+              <select
+                value={formData.answer_type}
+                onChange={(e) => handleInputChange('answer_type', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                {questionTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Length (Max Characters)
+              </label>
+              <input
+                type="number"
+                value={formData.length}
+                onChange={(e) => handleInputChange('length', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                placeholder="e.g., 50, 100, 255"
+                min="1"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Maximum character limit for this field
+              </p>
+            </div>
           </div>
 
           {/* Auto-Detection */}

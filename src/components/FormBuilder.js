@@ -1058,10 +1058,32 @@ const GroupEditor = ({ group, onSave, onCancel }) => {
     title: group.title || '',
     repeatable: group.repeatable || false
   });
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    // Auto-focus the input field when modal opens
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.title.trim()) {
+      onSave({ ...formData, title: formData.title.trim() });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Edit Group</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
@@ -1069,41 +1091,46 @@ const GroupEditor = ({ group, onSave, onCancel }) => {
           </button>
         </div>
 
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Group Title
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="p-4 space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Group Title
+              </label>
+              <input
+                ref={inputRef}
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onKeyDown={handleKeyDown}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                placeholder="Enter group title"
+              />
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="repeatable"
+                checked={formData.repeatable}
+                onChange={(e) => setFormData({ ...formData, repeatable: e.target.checked })}
+                className="h-4 w-4 text-primary-600 rounded"
+              />
+              <label htmlFor="repeatable" className="ml-2 text-sm text-gray-700">
+                Repeatable group (users can add multiple instances)
+              </label>
+            </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="repeatable"
-              checked={formData.repeatable}
-              onChange={(e) => setFormData({ ...formData, repeatable: e.target.checked })}
-              className="h-4 w-4 text-primary-600 rounded"
-            />
-            <label htmlFor="repeatable" className="ml-2 text-sm text-gray-700">
-              Repeatable group (users can add multiple instances)
-            </label>
+          <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
+            <button type="button" onClick={onCancel} className="btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={!formData.title.trim()}>
+              Save Changes
+            </button>
           </div>
-        </div>
-
-        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
-          <button onClick={onCancel} className="btn-secondary">
-            Cancel
-          </button>
-          <button onClick={() => onSave(formData)} className="btn-primary">
-            Save Changes
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );
@@ -1112,10 +1139,32 @@ const GroupEditor = ({ group, onSave, onCancel }) => {
 // Section Editor Component
 const SectionEditor = ({ section, onSave, onCancel }) => {
   const [title, setTitle] = useState(section.title || '');
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    // Auto-focus the input field when modal opens
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (title.trim()) {
+      onSave({ title: title.trim() });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Edit Section</h2>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
@@ -1123,26 +1172,31 @@ const SectionEditor = ({ section, onSave, onCancel }) => {
           </button>
         </div>
 
-        <div className="p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Section Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Section Title
+            </label>
+            <input
+              ref={inputRef}
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              placeholder="Enter section title"
+            />
+          </div>
 
-        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
-          <button onClick={onCancel} className="btn-secondary">
-            Cancel
-          </button>
-          <button onClick={() => onSave({ title })} className="btn-primary">
-            Save Changes
-          </button>
-        </div>
+          <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
+            <button type="button" onClick={onCancel} className="btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary" disabled={!title.trim()}>
+              Save Changes
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
