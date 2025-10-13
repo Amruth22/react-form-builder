@@ -185,22 +185,27 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="w-full max-w-3xl mx-auto">
-        {/* Upload Zone */}
+    <div className="min-h-[85vh] flex items-center justify-center py-12">
+      <div className="w-full max-w-4xl mx-auto">
+        {/* Upload Zone - Hero Section */}
         {!isProcessing && !success && (
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`
-              relative border-3 border-dashed rounded-2xl p-16 text-center transition-all shadow-lg
-              ${isDragging
-                ? 'border-blue-500 bg-blue-50 scale-105'
-                : 'border-gray-300 hover:border-blue-400 bg-white hover:shadow-xl'
-              }
+              relative drop-zone overflow-hidden
+              ${isDragging ? 'active scale-105' : ''}
             `}
           >
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(circle, #667eea 1px, transparent 1px)',
+                backgroundSize: '30px 30px'
+              }}></div>
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -209,56 +214,93 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
               className="hidden"
             />
 
-            <div className="mb-8 pointer-events-none">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                <FileText className="w-12 h-12 text-white" />
+            <div className="relative z-10 pointer-events-none">
+              {/* Animated Icon */}
+              <div className="mb-10">
+                <div className="relative w-32 h-32 mx-auto">
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl blur-2xl opacity-40 animate-pulse"></div>
+                  {/* Icon container */}
+                  <div className="relative w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform transition-transform duration-500 hover:scale-110">
+                    <FileText className="w-16 h-16 text-white" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                      <Upload className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
-                Upload Your Form
-              </h1>
-
-              <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
-                Drag and drop your PDF or JSON file here, or click the button below
-              </p>
+              {/* Hero Text */}
+              <div className="text-center mb-12">
+                <h1 className="text-5xl font-bold mb-4">
+                  <span className="text-gradient">Transform Your Forms</span>
+                </h1>
+                <p className="text-xl text-gray-600 mb-2 max-w-2xl mx-auto leading-relaxed">
+                  Upload PDF forms for instant AI extraction or import existing JSON structures
+                </p>
+                <p className="text-sm text-gray-500">
+                  Powered by advanced AI • Secure • Lightning fast
+                </p>
+              </div>
             </div>
 
-            <button
-              onClick={handleButtonClick}
-              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 pointer-events-auto relative z-10"
-            >
-              <Upload className="w-6 h-6 mr-3" />
-              Select PDF or JSON File
-            </button>
+            {/* CTA Button */}
+            <div className="relative z-10">
+              <button
+                onClick={handleButtonClick}
+                className="btn-primary pointer-events-auto transform transition-all hover:scale-105 text-lg"
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                Choose File to Upload
+              </button>
+            </div>
 
-            <p className="text-sm text-gray-500 mt-8">
-              Upload a PDF for AI extraction or import an existing JSON form structure
-            </p>
+            {/* Supported formats */}
+            <div className="mt-10 flex items-center justify-center space-x-6 text-sm text-gray-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="font-medium">PDF supported</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="font-medium">JSON supported</span>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Processing State */}
         {isProcessing && !success && (
-          <div className="bg-white rounded-2xl border-2 border-blue-200 p-12 shadow-xl">
+          <div className="card-premium p-16 animate-bounce-in">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center">
-                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              {/* Animated Loader */}
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+                </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Processing Your PDF
+              <h3 className="text-3xl font-bold mb-4">
+                <span className="text-gradient">Processing Your File</span>
               </h3>
 
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-gray-600 mb-8 font-medium">
                 {progress}
               </p>
 
-              <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-3 mb-6 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-3 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+              {/* Premium Progress Bar */}
+              <div className="w-full max-w-md mx-auto bg-gray-100 rounded-full h-4 mb-6 overflow-hidden relative">
+                <div className="absolute inset-0 shimmer"></div>
+                <div className="relative h-full rounded-full" style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  width: '70%',
+                  boxShadow: '0 0 20px rgba(102, 126, 234, 0.5)'
+                }}></div>
               </div>
 
               <p className="text-sm text-gray-500">
-                This may take 2-5 minutes depending on the PDF size
+                AI is analyzing your document • This may take 2-5 minutes
               </p>
             </div>
           </div>
@@ -266,44 +308,53 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
 
         {/* Success State */}
         {success && (
-          <div className="bg-white rounded-2xl border-2 border-green-200 p-12 shadow-xl">
+          <div className="card-premium p-16 animate-bounce-in border-2 border-green-300">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-10 h-10 text-green-600" />
+              {/* Success Icon */}
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full blur-xl opacity-50"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl">
+                  <CheckCircle className="w-12 h-12 text-white" />
+                </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                PDF Processed Successfully!
+              <h3 className="text-3xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-green-600 to-emerald-600" style={{
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>Success!</span>
               </h3>
 
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-gray-600 mb-8 font-medium">
                 {progress}
               </p>
 
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-8 border border-green-200">
+              {/* Stats Grid */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 mb-8 border-2 border-green-200">
                 <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">File</p>
-                    <p className="font-semibold text-gray-900 truncate">{success.filename}</p>
+                  <div className="text-left">
+                    <p className="text-sm text-gray-500 mb-2 font-medium">📄 File</p>
+                    <p className="font-bold text-gray-900 truncate text-lg">{success.filename}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Pages</p>
-                    <p className="font-semibold text-gray-900">{success.pages}</p>
+                  <div className="text-left">
+                    <p className="text-sm text-gray-500 mb-2 font-medium">📑 Pages</p>
+                    <p className="font-bold text-gray-900 text-lg">{success.pages}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Form Elements</p>
-                    <p className="font-semibold text-gray-900">{success.elements}</p>
+                  <div className="text-left">
+                    <p className="text-sm text-gray-500 mb-2 font-medium">📝 Form Elements</p>
+                    <p className="font-bold text-gray-900 text-lg">{success.elements}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Sections</p>
-                    <p className="font-semibold text-gray-900">{success.structure.sections}</p>
+                  <div className="text-left">
+                    <p className="text-sm text-gray-500 mb-2 font-medium">🗂️ Sections</p>
+                    <p className="font-bold text-gray-900 text-lg">{success.structure.sections}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center space-x-3 text-gray-600">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                <span className="text-base font-medium">Loading form builder...</span>
+              {/* Loading Animation */}
+              <div className="flex items-center justify-center space-x-3">
+                <Loader2 className="w-5 h-5 animate-spin text-indigo-600" />
+                <span className="text-base font-semibold text-gradient">Loading form builder...</span>
               </div>
             </div>
           </div>
@@ -311,25 +362,34 @@ const PdfUploadZone = ({ onJsonReceived, apiUrl = API_CONFIG.baseUrl }) => {
 
         {/* Error State */}
         {error && (
-          <div className="bg-white rounded-2xl border-2 border-red-200 p-12 shadow-xl">
+          <div className="card-premium p-16 animate-bounce-in border-2 border-rose-300">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-10 h-10 text-red-600" />
+              {/* Error Icon */}
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-400 to-red-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                <div className="relative w-full h-full bg-gradient-to-br from-rose-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                  <AlertCircle className="w-12 h-12 text-white" />
+                </div>
               </div>
 
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Processing Failed
+              <h3 className="text-3xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-rose-600 to-red-600" style={{
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>Processing Failed</span>
               </h3>
 
-              <p className="text-lg text-red-600 mb-8 max-w-md mx-auto">
-                {error}
-              </p>
+              <div className="bg-rose-50 border-2 border-rose-200 rounded-2xl p-6 mb-8">
+                <p className="text-lg text-rose-700 font-medium max-w-md mx-auto">
+                  {error}
+                </p>
+              </div>
 
               <button
                 onClick={resetUpload}
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="btn-primary"
               >
-                <Upload className="w-6 h-6 mr-3" />
+                <Upload className="w-5 h-5 mr-2" />
                 Try Again
               </button>
             </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Settings, Upload, RotateCcw } from 'lucide-react';
+import { FileText, Settings, Upload, RotateCcw, Sparkles } from 'lucide-react';
 
 const Header = ({ currentView, onViewChange, onReset, hasData }) => {
   const navItems = [
@@ -9,21 +9,29 @@ const Header = ({ currentView, onViewChange, onReset, hasData }) => {
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <header className="glass-header sticky top-0 z-50">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo - Premium Design */}
           <button
             onClick={() => onViewChange('import')}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            className="group flex items-center space-x-3 transition-all duration-300 hover:scale-105"
             title="Go to home page"
           >
-            <FileText className="w-8 h-8 text-primary-600" />
-            <h1 className="text-xl font-bold text-gray-900">Form Builder</h1>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+              <div className="relative bg-gradient-to-br from-indigo-600 to-purple-600 p-2 rounded-xl shadow-lg">
+                <FileText className="w-7 h-7 text-white" />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-gradient leading-none">Form Builder</h1>
+              <span className="text-xs text-gray-500 font-medium">Professional Edition</span>
+            </div>
           </button>
 
-          {/* Navigation */}
-          <nav className="flex items-center space-x-1">
+          {/* Navigation - Modern Tabs */}
+          <nav className="flex items-center space-x-2 bg-white/60 backdrop-blur-sm rounded-2xl p-1.5 shadow-md">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentView === item.id;
@@ -35,17 +43,23 @@ const Header = ({ currentView, onViewChange, onReset, hasData }) => {
                   onClick={() => !isDisabled && onViewChange(item.id)}
                   disabled={isDisabled}
                   className={`
-                    flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200
-                    ${isActive 
-                      ? 'bg-primary-100 text-primary-700' 
-                      : isDisabled 
-                        ? 'text-gray-400 cursor-not-allowed' 
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    relative flex items-center space-x-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-300
+                    ${isActive
+                      ? 'text-white shadow-lg'
+                      : isDisabled
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:text-indigo-600 hover:bg-white/80'
                     }
                   `}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  {isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl animate-bounce-in"></div>
+                  )}
+                  <Icon className={`w-4 h-4 relative z-10 ${isActive ? 'animate-pulse' : ''}`} />
+                  <span className="relative z-10">{item.label}</span>
+                  {isActive && (
+                    <Sparkles className="w-3 h-3 relative z-10 animate-pulse" />
+                  )}
                 </button>
               );
             })}
@@ -56,10 +70,10 @@ const Header = ({ currentView, onViewChange, onReset, hasData }) => {
             {hasData && (
               <button
                 onClick={onReset}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                className="group flex items-center space-x-2 text-gray-600 hover:text-rose-600 px-4 py-2.5 rounded-xl hover:bg-white/80 transition-all duration-300 font-medium shadow-sm hover:shadow-md"
                 title="Start over"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
                 <span className="hidden sm:inline">Reset</span>
               </button>
             )}

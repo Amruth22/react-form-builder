@@ -86,40 +86,43 @@ const QuestionCard = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              {/* Question Header */}
-              <div className="flex items-center space-x-2 mb-2 flex-wrap">
-                {/* Question Tag - Show Claude's field_name or PDF metadata field_name ONLY */}
+              {/* Question Header - Premium Badges */}
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {/* Question Tag - Premium Badge with Gradient */}
                 {(question.field_name || question.pdf_metadata?.field_name) && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 bg-indigo-600 text-white border-indigo-700">
+                  <span className="badge-field-name">
                     {question.pdf_metadata?.field_name || question.field_name}
                   </span>
                 )}
-                {/* Question Label */}
+                {/* Question Label - Soft Badge */}
                 {question.question_label && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-primary-100 text-primary-800 border border-primary-300">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 transition-all duration-200 hover:bg-indigo-100">
                     {question.question_label}
                   </span>
                 )}
-                <div className="flex items-center space-x-2">
-                  <Icon className="w-4 h-4 text-primary-600" />
-                  <span className="text-sm font-medium text-primary-600">
+                {/* Question Type with Icon - Gradient Background */}
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200">
+                  <Icon className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-semibold text-indigo-700">
                     {getQuestionTypeLabel(question.answer_type)}
                   </span>
                 </div>
+                {/* Required Badge - Gradient */}
                 {question.required && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <span className="badge-required">
                     Required
                   </span>
                 )}
+                {/* Repeatable Badge - Warning Gradient */}
                 {isRepeatable && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                  <span className="badge-warning">
                     Repeatable
                   </span>
                 )}
               </div>
 
-              {/* Question Text */}
-              <h3 className="text-lg font-medium text-gray-900 mb-2 leading-tight">
+              {/* Question Text - Enhanced Typography */}
+              <h3 className="text-xl font-bold text-gray-900 mb-3 leading-snug group-hover:text-indigo-900 transition-colors duration-200">
                 {question.question || 'Untitled Question'}
               </h3>
 
@@ -289,12 +292,12 @@ const QuestionCard = ({
               )}
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Actions - Premium Icon Buttons */}
+            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-0 translate-x-2">
               {onMove && allSections && allSections.length > 1 && (
                 <button
                   onClick={onMove}
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                  className="btn-icon btn-icon-move"
                   title="Move to another section"
                 >
                   <MoveRight className="w-4 h-4" />
@@ -302,14 +305,14 @@ const QuestionCard = ({
               )}
               <button
                 onClick={onEdit}
-                className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200"
+                className="btn-icon btn-icon-edit"
                 title="Edit question"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
               <button
                 onClick={onDelete}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                className="btn-icon btn-icon-delete"
                 title="Delete question"
               >
                 <Trash2 className="w-4 h-4" />
@@ -319,8 +322,8 @@ const QuestionCard = ({
         </div>
       </div>
 
-      {/* Question Number */}
-      <div className="absolute -left-2 -top-2 w-6 h-6 bg-primary-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+      {/* Question Number - Premium Badge with Gradient */}
+      <div className="absolute -left-3 -top-3 w-8 h-8 bg-gradient-to-br from-indigo-600 to-purple-600 text-white text-sm font-bold rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
         {index + 1}
       </div>
     </div>
