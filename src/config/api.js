@@ -3,7 +3,7 @@
 
 const API_CONFIG = {
   // Base URL for the Flask API (hardcoded for EC2)
-  baseUrl: 'http://98.84.123.251:5000',
+  baseUrl: 'http://127.0.0.1:5000',
   
   // API endpoints
   endpoints: {

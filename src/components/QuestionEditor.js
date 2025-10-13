@@ -207,6 +207,24 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
       options: cleanedOptions
     };
 
+    // Map question_tag to field_name (for edited tags)
+    if (formData.question_tag) {
+      updatedQuestion.field_name = formData.question_tag;
+    }
+
+    // Ensure sub-questions have their field_name properly mapped from question_tag
+    if (updatedQuestion.sub_questions && updatedQuestion.sub_questions.length > 0) {
+      updatedQuestion.sub_questions = updatedQuestion.sub_questions.map(subQ => {
+        if (subQ.question_tag) {
+          return { ...subQ, field_name: subQ.question_tag };
+        }
+        return subQ;
+      });
+    }
+
+    // Remove question_tag from the final output (we use field_name)
+    delete updatedQuestion.question_tag;
+
     // Remove empty validation
     if (Object.keys(updatedQuestion.validation).length === 0) {
       delete updatedQuestion.validation;
@@ -938,7 +956,13 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                           <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded font-medium">Required</span>
                         )}
                         <button
-                          onClick={() => setEditingSubQuestion({ subQuestion: subQ, index })}
+                          onClick={() => setEditingSubQuestion({
+                            subQuestion: {
+                              ...subQ,
+                              question_tag: subQ.question_tag || subQ.pdf_metadata?.field_name || subQ.field_name || ''
+                            },
+                            index
+                          })}
                           className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded"
                           title="Edit sub-question"
                         >
@@ -964,7 +988,8 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                     const newSubQuestion = {
                       question: 'New Sub-Question',
                       answer_type: 'text',
-                      required: false
+                      required: false,
+                      question_tag: '' // Initialize empty tag for editing
                     };
                     setEditingSubQuestion({ subQuestion: newSubQuestion, index: -1 });
                   }}
@@ -1022,7 +1047,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 </label>
                 <input
                   type="text"
-                  value={editingSubQuestion.subQuestion.pdf_metadata?.field_name || editingSubQuestion.subQuestion.field_name || ''}
+                  value={editingSubQuestion.subQuestion.question_tag || editingSubQuestion.subQuestion.pdf_metadata?.field_name || editingSubQuestion.subQuestion.field_name || ''}
                   onChange={(e) => setEditingSubQuestion(prev => ({
                     ...prev,
                     subQuestion: { ...prev.subQuestion, question_tag: e.target.value }

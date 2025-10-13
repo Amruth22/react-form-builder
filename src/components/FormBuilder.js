@@ -786,6 +786,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                                   })}
                                                                   onMove={() => setMovingQuestion({ sectionIndex, groupIndex, questionIndex })}
                                                                   allSections={allSections}
+                                                                  formData={formData}
                                                                 />
                                                               </div>
                                                             )}
@@ -954,6 +955,7 @@ const FormBuilder = ({ formData, onFormDataChange, onExportHtml }) => {
                                                                         })}
                                                                         onMove={() => setMovingQuestion({ sectionIndex: selectedSectionIndex, groupIndex, questionIndex })}
                                                                         allSections={allSections}
+                                                                        formData={formData}
                                                                       />
                                                                     </div>
                                                                   )}

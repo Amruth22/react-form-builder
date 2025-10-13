@@ -31,8 +31,37 @@ const QuestionCard = ({
   onEdit,
   onDelete,
   onMove,
-  allSections
+  allSections,
+  formData
 }) => {
+
+  // Helper function to find parent question by ID
+  const findParentQuestion = (parentId) => {
+    if (!formData || !formData.pages || !parentId) return null;
+
+    // Search through all sections and groups to find the parent question
+    // Note: After section merging, all pages are in pages[0] but question_ids still reference original page numbers
+    for (const page of formData.pages) {
+      for (const section of page.sections || []) {
+        for (const group of section.groups || []) {
+          for (const q of group.questions || []) {
+            if (q.question_id === parentId) {
+              return {
+                question: q.question,
+                fieldName: q.pdf_metadata?.field_name || q.field_name,
+                questionId: q.question_id
+              };
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // Get parent question info if this question has a parent
+  const parentInfo = question.parent_question_id ? findParentQuestion(question.parent_question_id) : null;
   const getQuestionIcon = (answerType) => {
     const iconMap = {
       text: Type,
@@ -88,12 +117,16 @@ const QuestionCard = ({
             <div className="flex-1">
               {/* Question Header */}
               <div className="flex items-center space-x-2 mb-2 flex-wrap">
-                {/* Question Tag - Show Claude's field_name or PDF metadata field_name ONLY */}
-                {(question.field_name || question.pdf_metadata?.field_name) && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 bg-indigo-600 text-white border-indigo-700">
-                    {question.pdf_metadata?.field_name || question.field_name}
-                  </span>
-                )}
+                {/* Question Tag - ONLY show question's OWN field_name, never steal from options */}
+                {(() => {
+                  const questionFieldName = question.pdf_metadata?.field_name || question.field_name;
+
+                  return questionFieldName && (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono border-2 bg-indigo-600 text-white border-indigo-700">
+                      {questionFieldName}
+                    </span>
+                  );
+                })()}
                 {/* Question Label */}
                 {question.question_label && (
                   <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-primary-100 text-primary-800 border border-primary-300">
@@ -140,37 +173,36 @@ const QuestionCard = ({
                 </div>
               )}
 
-              {/* Options Preview */}
+              {/* Options Preview - Show ALL options (including single option) with field_names */}
               {question.options && question.options.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-sm text-gray-600 mb-1">
-                    {question.answer_type === 'radio_multi_person' ? 'Choices (for each person):' : 'Options:'}
+                <div className="mb-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-3">
+                  <p className="text-sm font-bold text-gray-800 mb-2">
+                    {question.answer_type === 'radio_multi_person' ? 'Choices (for each person):' : 'Options:'} ({question.options.length})
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {question.options.slice(0, 3).map((option, optIndex) => {
+                    {question.options.map((option, optIndex) => {
                       const optionLabel = typeof option === 'string'
                         ? option
                         : option.label || option.value || option;
                       const optionFieldName = typeof option === 'object' ? option.field_name : null;
 
                       return (
-                        <div key={optIndex} className="inline-flex items-center gap-1">
-                          {optionFieldName && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold font-mono bg-indigo-500 text-white border border-indigo-600">
+                        <div key={optIndex} className="inline-flex items-center gap-2 bg-white border-2 border-blue-200 rounded-lg px-3 py-2 shadow-sm">
+                          {optionFieldName ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
                               {optionFieldName}
                             </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-orange-300 text-orange-800">
+                              NO TAG
+                            </span>
                           )}
-                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">
+                          <span className="text-sm font-semibold text-gray-900">
                             {optionLabel}
                           </span>
                         </div>
                       );
                     })}
-                    {question.options.length > 3 && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500">
-                        +{question.options.length - 3} more
-                      </span>
-                    )}
                   </div>
                 </div>
               )}
@@ -197,17 +229,41 @@ const QuestionCard = ({
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span
                     className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300"
-                    title={question.parent_question_text ? `Depends on: ${question.parent_question_text}` : 'Has parent question dependency'}
+                    title={parentInfo ? `Depends on: ${parentInfo.question}` : 'Has parent question dependency'}
                   >
                     <Link className="w-3 h-3 mr-1" />
                     Parent Question
                   </span>
-                  {question.parent_question_tag && (
+                  {parentInfo ? (
+                    parentInfo.fieldName ? (
+                      <span
+                        className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700"
+                        title={`Parent: ${parentInfo.question}`}
+                      >
+                        {parentInfo.fieldName}
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300"
+                        title={`Parent question: ${parentInfo.question}`}
+                      >
+                        {parentInfo.questionId}
+                      </span>
+                    )
+                  ) : (
                     <span
-                      className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700"
-                      title={question.parent_question_text || 'Parent question tag'}
+                      className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-300"
+                      title="Parent question not found in form"
                     >
-                      {question.parent_question_tag}
+                      ⚠ Parent not found
+                    </span>
+                  )}
+                  {question.show_when && (
+                    <span
+                      className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300"
+                      title="Shows when parent value is"
+                    >
+                      Show when: {Array.isArray(question.show_when) ? question.show_when.join(' or ') : question.show_when}
                     </span>
                   )}
                 </div>
@@ -259,31 +315,38 @@ const QuestionCard = ({
                 </div>
               )}
 
-              {/* Sub-Questions */}
+              {/* Sub-Questions - ALWAYS show field_name tags */}
               {question.sub_questions && question.sub_questions.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Sub-questions ({question.sub_questions.length}):
+                <div className="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-400 rounded-r-lg p-3">
+                  <p className="text-sm font-bold text-gray-800 mb-2 flex items-center">
+                    <ChevronRight className="w-4 h-4 text-green-600 mr-1" />
+                    Sub-questions ({question.sub_questions.length})
                   </p>
-                  <div className="pl-4 border-l-2 border-green-300 space-y-1.5">
-                    {question.sub_questions.map((subQ, subIdx) => (
-                      <div key={subIdx} className="flex items-center space-x-2 flex-wrap">
-                        <ChevronRight className="w-3 h-3 text-green-600 flex-shrink-0" />
-                        {/* Sub-Question Tag - Show field_name ONLY if from PDF or Claude */}
-                        {(subQ.field_name || subQ.pdf_metadata?.field_name) && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold font-mono border bg-indigo-500 text-white border-indigo-600">
-                            {subQ.pdf_metadata?.field_name || subQ.field_name}
-                          </span>
-                        )}
-                        <span className="text-sm text-gray-800">{subQ.question || 'Untitled'}</span>
-                        <span className="text-xs text-gray-500">({subQ.answer_type})</span>
-                        {subQ.required && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                            Required
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                  <div className="space-y-2">
+                    {question.sub_questions.map((subQ, subIdx) => {
+                      const subFieldName = subQ.pdf_metadata?.field_name || subQ.field_name;
+                      return (
+                        <div key={subIdx} className="flex items-center gap-2 flex-wrap bg-white rounded-lg px-3 py-2 border border-green-200">
+                          {/* ALWAYS show sub-question tag if available */}
+                          {subFieldName ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
+                              {subFieldName}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-gray-300 text-gray-600">
+                              NO TAG
+                            </span>
+                          )}
+                          <span className="text-sm font-medium text-gray-900">{subQ.question || 'Untitled'}</span>
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">({subQ.answer_type})</span>
+                          {subQ.required && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                              Required
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

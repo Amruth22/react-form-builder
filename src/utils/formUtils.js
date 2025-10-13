@@ -344,7 +344,9 @@ export const getAllQuestionsWithIds = (formData) => {
       section.groups?.forEach((group, groupIndex) => {
         group.questions?.forEach((question, questionIndex) => {
           questions.push({
-            id: generateQuestionId(pageIndex, sectionIndex, groupIndex, questionIndex),
+            // Use existing question_id if available (preserves original IDs after section merging)
+            // Otherwise generate new ID based on current position
+            id: question.question_id || generateQuestionId(pageIndex, sectionIndex, groupIndex, questionIndex),
             question: question,
             path: { pageIndex, sectionIndex, groupIndex, questionIndex },
             sectionTitle: section.title,
