@@ -319,10 +319,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
           {/* Question Tag and Label */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="question-tag" className="block text-sm font-medium text-gray-700 mb-2">
                 Question Tag {(question.field_name || question.pdf_metadata?.field_name) ? '(from PDF)' : ''}
               </label>
               <input
+                id="question-tag"
                 type="text"
                 value={formData.question_tag}
                 onChange={(e) => handleInputChange('question_tag', e.target.value)}
@@ -338,10 +339,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="question-label" className="block text-sm font-medium text-gray-700 mb-2">
                 Question Label
               </label>
               <input
+                id="question-label"
                 type="text"
                 value={formData.question_label}
                 onChange={(e) => handleInputChange('question_label', e.target.value)}
@@ -356,10 +358,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
           {/* Question Text */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="question-text" className="block text-sm font-medium text-gray-700 mb-2">
               Question Text
             </label>
             <textarea
+              id="question-text"
               value={formData.question}
               onChange={(e) => handleInputChange('question', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
@@ -371,10 +374,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
           {/* Question Type and Length */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="question-type" className="block text-sm font-medium text-gray-700 mb-2">
                 Question Type
               </label>
               <select
+                id="question-type"
                 value={formData.answer_type}
                 onChange={(e) => handleInputChange('answer_type', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -387,10 +391,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="question-length" className="block text-sm font-medium text-gray-700 mb-2">
                 Length (Max Characters)
               </label>
               <input
+                id="question-length"
                 type="number"
                 value={formData.length}
                 onChange={(e) => handleInputChange('length', e.target.value)}
@@ -482,13 +487,16 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                   const optionFieldName = typeof option === 'object' ? option.field_name || '' : '';
                   const requiresInput = typeof option === 'object' ? option.requires_input : false;
                   const inputType = typeof option === 'object' ? option.input_type || 'text' : 'text';
+                  // Use a unique key based on option value or index as fallback
+                  const optionKey = optionValue || `option-${index}`;
 
                   return (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                    <div key={optionKey} className="border border-gray-200 rounded-lg p-3 space-y-2">
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Label</label>
+                          <label htmlFor={`option-label-${index}`} className="block text-xs text-gray-600 mb-1">Label</label>
                           <input
+                            id={`option-label-${index}`}
                             type="text"
                             value={optionLabel}
                             onChange={(e) => handleOptionChange(index, 'label', e.target.value)}
@@ -497,8 +505,9 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Value</label>
+                          <label htmlFor={`option-value-${index}`} className="block text-xs text-gray-600 mb-1">Value</label>
                           <input
+                            id={`option-value-${index}`}
                             type="text"
                             value={optionValue}
                             onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
@@ -507,9 +516,10 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Field Name (PDF)</label>
+                          <label htmlFor={`option-field-${index}`} className="block text-xs text-gray-600 mb-1">Field Name (PDF)</label>
                           <div className="flex items-center space-x-2">
                             <input
+                              id={`option-field-${index}`}
                               type="text"
                               value={optionFieldName}
                               onChange={(e) => handleOptionChange(index, 'field_name', e.target.value)}
@@ -531,8 +541,9 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
                       {/* Conditional Input */}
                       <div className="flex items-center space-x-4 pl-3">
-                        <label className="flex items-center">
+                        <label htmlFor={`requires-input-${index}`} className="flex items-center">
                           <input
+                            id={`requires-input-${index}`}
                             type="checkbox"
                             checked={requiresInput}
                             onChange={(e) => handleOptionChange(index, 'requires_input', e.target.checked)}
@@ -544,6 +555,7 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                         </label>
                         {requiresInput && (
                           <select
+                            id={`input-type-${index}`}
                             value={inputType}
                             onChange={(e) => handleOptionChange(index, 'input_type', e.target.value)}
                             className="px-2 py-1 text-sm border border-gray-300 rounded"
@@ -612,25 +624,27 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                   {['text', 'textarea', 'email', 'tel'].includes(formData.answer_type) && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="min-length" className="block text-sm font-medium text-gray-700 mb-2">
                           Minimum Length
                         </label>
                         <input
+                          id="min-length"
                           type="number"
                           value={formData.validation.minLength || ''}
-                          onChange={(e) => handleValidationChange('minLength', parseInt(e.target.value) || null)}
+                          onChange={(e) => handleValidationChange('minLength', parseInt(e.target.value, 10) || null)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                           placeholder="No minimum"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="max-length" className="block text-sm font-medium text-gray-700 mb-2">
                           Maximum Length
                         </label>
                         <input
+                          id="max-length"
                           type="number"
                           value={formData.validation.maxLength || ''}
-                          onChange={(e) => handleValidationChange('maxLength', parseInt(e.target.value) || null)}
+                          onChange={(e) => handleValidationChange('maxLength', parseInt(e.target.value, 10) || null)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                           placeholder="No maximum"
                         />
@@ -642,10 +656,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                   {formData.answer_type === 'number' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="min-value" className="block text-sm font-medium text-gray-700 mb-2">
                           Minimum Value
                         </label>
                         <input
+                          id="min-value"
                           type="number"
                           value={formData.validation.min || ''}
                           onChange={(e) => handleValidationChange('min', parseFloat(e.target.value) || null)}
@@ -654,10 +669,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="max-value" className="block text-sm font-medium text-gray-700 mb-2">
                           Maximum Value
                         </label>
                         <input
+                          id="max-value"
                           type="number"
                           value={formData.validation.max || ''}
                           onChange={(e) => handleValidationChange('max', parseFloat(e.target.value) || null)}
@@ -670,10 +686,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
                   {/* Pattern/Regex */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="validation-pattern" className="block text-sm font-medium text-gray-700 mb-2">
                       Pattern (Regular Expression)
                     </label>
                     <input
+                      id="validation-pattern"
                       type="text"
                       value={formData.validation.pattern || ''}
                       onChange={(e) => handleValidationChange('pattern', e.target.value)}
@@ -687,10 +704,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
                   {/* Custom Error Message */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="error-message" className="block text-sm font-medium text-gray-700 mb-2">
                       Custom Error Message
                     </label>
                     <input
+                      id="error-message"
                       type="text"
                       value={formData.validation.errorMessage || ''}
                       onChange={(e) => handleValidationChange('errorMessage', e.target.value)}
@@ -709,10 +727,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               <h4 className="text-sm font-medium text-purple-900">File Upload Settings</h4>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="accept-types" className="block text-sm font-medium text-gray-700 mb-2">
                   Accepted File Types
                 </label>
                 <input
+                  id="accept-types"
                   type="text"
                   value={formData.validation?.accept || ''}
                   onChange={(e) => handleValidationChange('accept', e.target.value)}
@@ -725,13 +744,14 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="max-file-size" className="block text-sm font-medium text-gray-700 mb-2">
                   Maximum File Size (MB)
                 </label>
                 <input
+                  id="max-file-size"
                   type="number"
                   value={formData.validation?.maxSize || ''}
-                  onChange={(e) => handleValidationChange('maxSize', parseInt(e.target.value) || null)}
+                  onChange={(e) => handleValidationChange('maxSize', parseInt(e.target.value, 10) || null)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   placeholder="e.g., 10"
                 />
@@ -765,10 +785,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="parent-question" className="block text-sm font-medium text-gray-700 mb-2">
                     Parent Question
                   </label>
                   <select
+                    id="parent-question"
                     value={formData.parent_question_id || ''}
                     onChange={(e) => handleInputChange('parent_question_id', e.target.value || null)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
@@ -802,9 +823,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                         const isSelected = Array.isArray(formData.show_when)
                           ? formData.show_when.includes(optionValue)
                           : formData.show_when === optionValue;
+                        // Use unique key based on value
+                        const optionKeyForParent = `parent-option-${optionValue}` || `parent-option-${index}`;
 
                         return (
-                          <label key={index} className="flex items-center space-x-2">
+                          <label key={optionKeyForParent} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               checked={isSelected}
@@ -841,8 +864,8 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                   Who should answer this question? (Select multiple)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {PERSON_OPTIONS.map(person => (
-                    <label key={person} className="flex items-center p-2 border border-gray-200 rounded hover:bg-white cursor-pointer">
+                  {PERSON_OPTIONS.map((person) => (
+                    <label key={`person-${person}`} className="flex items-center p-2 border border-gray-200 rounded hover:bg-white cursor-pointer">
                       <input
                         type="checkbox"
                         checked={formData.applies_to.includes(person)}
@@ -873,14 +896,15 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                   <h5 className="text-sm font-medium text-gray-700 mb-3">Preview:</h5>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
                     <p className="font-medium text-gray-900">{formData.question || 'Your question here'}</p>
-                    {formData.applies_to.map(person => (
-                      <div key={person} className="flex items-center space-x-3 pl-4">
+                    {formData.applies_to.map((person) => (
+                      <div key={`applies-${person}`} className="flex items-center space-x-3 pl-4">
                         <span className="text-sm font-medium text-gray-700 capitalize min-w-[100px]">{person}:</span>
                         <div className="flex items-center space-x-4">
                           {formData.options.map((option, idx) => {
                             const label = typeof option === 'string' ? option : option.label || option.value;
+                            const optKey = typeof option === 'string' ? option : option.value || `option-${idx}`;
                             return (
-                              <label key={idx} className="flex items-center space-x-2">
+                              <label key={`${person}-${optKey}`} className="flex items-center space-x-2">
                                 <input type="radio" name={`preview_${person}`} className="h-4 w-4" disabled />
                                 <span className="text-sm text-gray-600">{label}</span>
                               </label>
@@ -942,8 +966,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
                 {formData.sub_questions && formData.sub_questions.length > 0 && (
                   <div className="space-y-2">
-                    {formData.sub_questions.map((subQ, index) => (
-                      <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-green-300 transition-colors flex-wrap">
+                    {formData.sub_questions.map((subQ, index) => {
+                      // Use unique key based on sub-question data
+                      const subQKey = subQ.question || subQ.field_name || `sub-question-${index}`;
+                      return (
+                      <div key={subQKey} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-green-300 transition-colors flex-wrap">
                         {/* Sub-Question Tag - Only show if from PDF or Claude */}
                         {(subQ.field_name || subQ.pdf_metadata?.field_name) && (
                           <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono border bg-indigo-500 text-white border-indigo-600">
@@ -979,7 +1006,8 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 )}
 
@@ -1042,10 +1070,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
 
             <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="sub-question-tag" className="block text-sm font-medium text-gray-700 mb-2">
                   Sub-Question Tag {(editingSubQuestion.subQuestion.field_name || editingSubQuestion.subQuestion.pdf_metadata?.field_name) ? '(from PDF)' : ''}
                 </label>
                 <input
+                  id="sub-question-tag"
                   type="text"
                   value={editingSubQuestion.subQuestion.question_tag || editingSubQuestion.subQuestion.pdf_metadata?.field_name || editingSubQuestion.subQuestion.field_name || ''}
                   onChange={(e) => setEditingSubQuestion(prev => ({
@@ -1065,10 +1094,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="sub-question-text" className="block text-sm font-medium text-gray-700 mb-2">
                   Sub-Question Text
                 </label>
                 <input
+                  id="sub-question-text"
                   type="text"
                   value={editingSubQuestion.subQuestion.question || ''}
                   onChange={(e) => setEditingSubQuestion(prev => ({
@@ -1081,10 +1111,11 @@ const QuestionEditor = ({ question, onSave, onCancel, formData: allFormData, cur
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="sub-answer-type" className="block text-sm font-medium text-gray-700 mb-2">
                   Answer Type
                 </label>
                 <select
+                  id="sub-answer-type"
                   value={editingSubQuestion.subQuestion.answer_type || 'text'}
                   onChange={(e) => setEditingSubQuestion(prev => ({
                     ...prev,

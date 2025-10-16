@@ -3,6 +3,8 @@ import * as XLSX from 'xlsx';
 class ExcelExporter {
   /**
    * Flatten hierarchical form data into a flat array for Excel export
+   * @param {Object} formData - The form data structure with pages, sections, groups, questions
+   * @returns {Array} Array of flattened row objects for Excel
    */
   static flattenFormData(formData) {
     const rows = [];
@@ -69,6 +71,8 @@ class ExcelExporter {
 
   /**
    * Format options for Excel cell
+   * @param {Object} question - Question object containing options
+   * @returns {string} Formatted options string
    */
   static formatOptions(question) {
     if (!question.options || question.options.length === 0) {
@@ -100,6 +104,8 @@ class ExcelExporter {
 
   /**
    * Format applies_to field for radio_multi_person questions
+   * @param {Object} question - Question object with applies_to field
+   * @returns {string} Comma-separated list of persons
    */
   static formatAppliesTo(question) {
     if (!question.applies_to || question.applies_to.length === 0) {
@@ -113,6 +119,8 @@ class ExcelExporter {
 
   /**
    * Format show_when condition
+   * @param {Object} question - Question object with show_when field
+   * @returns {string} Formatted show_when condition
    */
   static formatShowWhen(question) {
     if (!question.show_when) {
@@ -128,6 +136,8 @@ class ExcelExporter {
 
   /**
    * Format validation rules
+   * @param {Object} question - Question object with validation rules
+   * @returns {string} Formatted validation rules
    */
   static formatValidation(question) {
     if (!question.validation || Object.keys(question.validation).length === 0) {
@@ -150,7 +160,10 @@ class ExcelExporter {
   }
 
   /**
-   * Generate and download Excel file
+   * Generate and download Excel file with form data
+   * @param {Object} formData - The form data structure to export
+   * @param {string} [filename='form_structure.xlsx'] - Output filename
+   * @returns {void}
    */
   static exportToExcel(formData, filename = 'form_structure.xlsx') {
     try {
@@ -217,6 +230,8 @@ class ExcelExporter {
 
   /**
    * Create metadata sheet with document information
+   * @param {Object} formData - The form data structure
+   * @returns {Object} XLSX worksheet object
    */
   static createMetadataSheet(formData) {
     const metadata = [];
@@ -249,7 +264,9 @@ class ExcelExporter {
   }
 
   /**
-   * Calculate form statistics
+   * Calculate form statistics including question counts and types
+   * @param {Object} formData - The form data structure
+   * @returns {Object} Object containing various form statistics
    */
   static getFormStatistics(formData) {
     let totalQuestions = 0;
@@ -263,18 +280,18 @@ class ExcelExporter {
         page.sections?.forEach(section => {
           section.groups?.forEach(group => {
             if (group.repeatable) {
-              repeatableGroups++;
+              repeatableGroups += 1;
             }
 
             group.questions?.forEach(question => {
-              totalQuestions++;
+              totalQuestions += 1;
 
               if (question.required) {
-                requiredQuestions++;
+                requiredQuestions += 1;
               }
 
               if (question.parent_question_id) {
-                conditionalQuestions++;
+                conditionalQuestions += 1;
               }
 
               const type = question.answer_type || 'unknown';

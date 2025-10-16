@@ -62,6 +62,75 @@ const QuestionCard = ({
 
   // Get parent question info if this question has a parent
   const parentInfo = question.parent_question_id ? findParentQuestion(question.parent_question_id) : null;
+
+  // Render option field name badge (orange NO TAG if missing)
+  const renderOptionFieldName = (fieldName) => {
+    if (fieldName) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
+          {fieldName}
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-orange-300 text-orange-800">
+        NO TAG
+      </span>
+    );
+  };
+
+  // Render sub-question field name badge (gray NO TAG if missing)
+  const renderSubQuestionFieldName = (fieldName) => {
+    if (fieldName) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
+          {fieldName}
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-gray-300 text-gray-600">
+        NO TAG
+      </span>
+    );
+  };
+
+  // Render parent field name badge based on parent info
+  const renderParentFieldName = () => {
+    if (!parentInfo) {
+      return (
+        <span
+          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-300"
+          title="Parent question not found in form"
+        >
+          ⚠ Parent not found
+        </span>
+      );
+    }
+
+    if (parentInfo.fieldName) {
+      return (
+        <span
+          className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700"
+          title={`Parent: ${parentInfo.question}`}
+        >
+          {parentInfo.fieldName}
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300"
+        title={`Parent question: ${parentInfo.question}`}
+      >
+        {parentInfo.questionId}
+      </span>
+    );
+  };
+
   const getQuestionIcon = (answerType) => {
     const iconMap = {
       text: Type,
@@ -188,15 +257,7 @@ const QuestionCard = ({
 
                       return (
                         <div key={optIndex} className="inline-flex items-center gap-2 bg-white border-2 border-blue-200 rounded-lg px-3 py-2 shadow-sm">
-                          {optionFieldName ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
-                              {optionFieldName}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-orange-300 text-orange-800">
-                              NO TAG
-                            </span>
-                          )}
+                          {renderOptionFieldName(optionFieldName)}
                           <span className="text-sm font-semibold text-gray-900">
                             {optionLabel}
                           </span>
@@ -234,30 +295,7 @@ const QuestionCard = ({
                     <Link className="w-3 h-3 mr-1" />
                     Parent Question
                   </span>
-                  {parentInfo ? (
-                    parentInfo.fieldName ? (
-                      <span
-                        className="inline-flex items-center px-2 py-1 rounded text-xs font-bold font-mono bg-indigo-600 text-white border border-indigo-700"
-                        title={`Parent: ${parentInfo.question}`}
-                      >
-                        {parentInfo.fieldName}
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300"
-                        title={`Parent question: ${parentInfo.question}`}
-                      >
-                        {parentInfo.questionId}
-                      </span>
-                    )
-                  ) : (
-                    <span
-                      className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-700 border border-red-300"
-                      title="Parent question not found in form"
-                    >
-                      ⚠ Parent not found
-                    </span>
-                  )}
+                  {renderParentFieldName()}
                   {question.show_when && (
                     <span
                       className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-300"
@@ -328,15 +366,7 @@ const QuestionCard = ({
                       return (
                         <div key={subIdx} className="flex items-center gap-2 flex-wrap bg-white rounded-lg px-3 py-2 border border-green-200">
                           {/* ALWAYS show sub-question tag if available */}
-                          {subFieldName ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-indigo-600 text-white">
-                              {subFieldName}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-gray-300 text-gray-600">
-                              NO TAG
-                            </span>
-                          )}
+                          {renderSubQuestionFieldName(subFieldName)}
                           <span className="text-sm font-medium text-gray-900">{subQ.question || 'Untitled'}</span>
                           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">({subQ.answer_type})</span>
                           {subQ.required && (

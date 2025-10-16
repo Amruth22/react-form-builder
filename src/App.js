@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import FormBuilder from './components/FormBuilder';
-// import FormPreview from './components/FormPreview'; // Hidden for now
 import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
 import { ensureQuestionIds, generateQuestionTags } from './utils/formUtils';
@@ -174,14 +173,6 @@ function App() {
             />
           </div>
         )}
-
-        {/* Preview hidden for now */}
-        {/* {currentView === 'preview' && formData && (
-          <FormPreview 
-            formData={formData}
-            onExportHtml={handleExportHtml}
-          />
-        )} */}
       </main>
     </div>
   );

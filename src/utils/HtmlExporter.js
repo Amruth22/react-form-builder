@@ -1,4 +1,9 @@
 class HtmlExporter {
+  /**
+   * Generate complete HTML form from form data
+   * @param {Object} formData - The form data structure
+   * @returns {string} Complete HTML document as string
+   */
   static generateHtml(formData) {
     const title = formData.document_info?.source_pdf || 'Interactive Form';
     const pages = formData.pages || [];
@@ -473,6 +478,11 @@ class HtmlExporter {
 </html>`;
   }
 
+  /**
+   * Generate page navigation buttons
+   * @param {Array} pages - Array of page objects
+   * @returns {string} HTML for page navigation
+   */
   static generatePageNavigation(pages) {
     if (pages.length <= 1) return '';
 
@@ -487,6 +497,11 @@ class HtmlExporter {
     `;
   }
 
+  /**
+   * Generate HTML for all pages
+   * @param {Array} pages - Array of page objects
+   * @returns {string} HTML for all pages
+   */
   static generatePages(pages) {
     return pages.map((page, pageIndex) => `
       <div class="page ${pageIndex === 0 ? 'active' : ''}" id="page${pageIndex}">
@@ -495,6 +510,12 @@ class HtmlExporter {
     `).join('');
   }
 
+  /**
+   * Generate HTML for page sections
+   * @param {Array} sections - Array of section objects
+   * @param {number} pageIndex - Index of the page
+   * @returns {string} HTML for sections
+   */
   static generateSections(sections, pageIndex) {
     if (sections.length === 0) {
       return '<p style="text-align: center; color: #6b7280; padding: 40px;">No content on this page</p>';
@@ -512,6 +533,13 @@ class HtmlExporter {
     `).join('');
   }
 
+  /**
+   * Generate HTML for form groups
+   * @param {Array} groups - Array of group objects
+   * @param {number} pageIndex - Index of the page
+   * @param {number} sectionIndex - Index of the section
+   * @returns {string} HTML for groups
+   */
   static generateGroups(groups, pageIndex, sectionIndex) {
     return groups.map((group, groupIndex) => {
       const groupId = `group_${pageIndex}_${sectionIndex}_${groupIndex}`;
@@ -537,6 +565,16 @@ class HtmlExporter {
     }).join('');
   }
 
+  /**
+   * Generate HTML for a single group instance
+   * @param {Object} group - Group object
+   * @param {number} pageIndex - Index of the page
+   * @param {number} sectionIndex - Index of the section
+   * @param {number} groupIndex - Index of the group
+   * @param {number} instanceIndex - Index of this instance
+   * @param {boolean} isRepeatable - Whether the group is repeatable
+   * @returns {string} HTML for the group instance
+   */
   static generateGroupInstance(group, pageIndex, sectionIndex, groupIndex, instanceIndex, isRepeatable) {
     const instanceId = `instance_${pageIndex}_${sectionIndex}_${groupIndex}_${instanceIndex}`;
     
@@ -555,6 +593,15 @@ class HtmlExporter {
     `;
   }
 
+  /**
+   * Generate HTML for form questions
+   * @param {Array} questions - Array of question objects
+   * @param {number} pageIndex - Index of the page
+   * @param {number} sectionIndex - Index of the section
+   * @param {number} groupIndex - Index of the group
+   * @param {number} instanceIndex - Index of the instance
+   * @returns {string} HTML for questions
+   */
   static generateQuestions(questions, pageIndex, sectionIndex, groupIndex, instanceIndex) {
     return questions.map((question, questionIndex) => {
       const fieldId = `field_${pageIndex}_${sectionIndex}_${groupIndex}_${questionIndex}_${instanceIndex}`;
@@ -613,7 +660,7 @@ class HtmlExporter {
           `;
           break;
 
-        case 'radio_multi_person':
+        case 'radio_multi_person': {
           const appliesTo = question.applies_to || [];
           inputHtml = `
             <div class="multi-person-question">
@@ -645,6 +692,7 @@ class HtmlExporter {
             </div>
           `;
           break;
+        }
 
         case 'radio':
           inputHtml = `
@@ -743,9 +791,9 @@ class HtmlExporter {
           `;
           break;
 
-        default:
-          const inputType = ['email', 'tel', 'date', 'number'].includes(question.answer_type) 
-            ? question.answer_type 
+        default: {
+          const inputType = ['email', 'tel', 'date', 'number'].includes(question.answer_type)
+            ? question.answer_type
             : 'text';
           inputHtml = `
             <input 
@@ -762,6 +810,8 @@ class HtmlExporter {
               oninput="validateField('${fieldId}')"
             >
           `;
+          break;
+        }
       }
 
       let subQuestionsHtml = '';
@@ -817,6 +867,11 @@ class HtmlExporter {
     }).join('');
   }
 
+  /**
+   * Generate embedded JavaScript for form interactivity
+   * @param {Array} pages - Array of page objects
+   * @returns {string} JavaScript code as string
+   */
   static generateJavaScript(pages) {
     return `
       let groupInstanceCounters = {};
@@ -921,7 +976,7 @@ class HtmlExporter {
         if (!groupInstanceCounters[groupId]) {
           groupInstanceCounters[groupId] = 1;
         }
-        groupInstanceCounters[groupId]++;
+        groupInstanceCounters[groupId] += 1;
         
         const instanceIndex = groupInstanceCounters[groupId] - 1;
         const instancesContainer = document.getElementById(groupId + '_instances');
@@ -977,7 +1032,7 @@ class HtmlExporter {
         
         uniqueNames.forEach(name => {
           const selected = document.querySelector('input[name="' + name + '"]:checked');
-          if (selected) answeredCount++;
+          if (selected) answeredCount += 1;
         });
         
         if (answeredCount < personCount) {
@@ -1197,6 +1252,11 @@ class HtmlExporter {
     `;
   }
 
+  /**
+   * Escape HTML special characters to prevent injection
+   * @param {string} text - Text to escape
+   * @returns {string} Escaped text safe for HTML
+   */
   static escapeHtml(text) {
     const map = {
       '&': '&amp;',
