@@ -4,33 +4,8 @@ import PdfUploadZone from './components/PdfUploadZone';
 import Header from './components/Header';
 import { ensureQuestionIds, generateQuestionTags } from './utils/formUtils';
 
-function App() {
-  const [formData, setFormData] = useState(null);
-  const [currentView, setCurrentView] = useState('import'); // 'import', 'builder', 'preview'
-
-  const handleJsonImport = useCallback((jsonData) => {
-    console.log('Imported JSON:', jsonData);
-
-    // Normalize JSON structure - support both old and new formats
-    let normalizedData = normalizeFormData(jsonData);
-
-    // Ensure all questions have unique IDs
-    normalizedData = ensureQuestionIds(normalizedData);
-
-    // Auto-generate question labels only (not tags - we use PDF field names)
-    normalizedData = generateQuestionTags(normalizedData, {
-      prefix: '',
-      forceRegenerate: false,
-      generateLabels: true,
-      usePdfFieldNames: false // Don't modify tags, just generate labels
-    });
-
-    setFormData(normalizedData);
-    setCurrentView('builder');
-  }, []);
-
-  // Merge sections with the same name across pages
-  const mergeSectionsAcrossPages = (data) => {
+// Merge sections with the same name across pages
+const mergeSectionsAcrossPages = (data) => {
     if (!data || !data.pages || data.pages.length === 0) return data;
 
     const sectionMap = new Map(); // Map<sectionTitle, {groups: [], sourcePages: []}>
@@ -80,10 +55,10 @@ function App() {
       _originalPageCount: data.pages.length,
       _sectionsMerged: true
     };
-  };
+};
 
-  // Normalize form data to support both flat and hierarchical structures
-  const normalizeFormData = (data) => {
+// Normalize form data to support both flat and hierarchical structures
+const normalizeFormData = (data) => {
     if (!data || !data.pages) return data;
 
     // Check if already in new format (has sections)
@@ -126,9 +101,34 @@ function App() {
       };
     }
 
-    // Merge sections with the same name across pages
-    return mergeSectionsAcrossPages(normalizedData);
-  };
+  // Merge sections with the same name across pages
+  return mergeSectionsAcrossPages(normalizedData);
+};
+
+function App() {
+  const [formData, setFormData] = useState(null);
+  const [currentView, setCurrentView] = useState('import'); // 'import', 'builder', 'preview'
+
+  const handleJsonImport = useCallback((jsonData) => {
+    console.log('Imported JSON:', jsonData);
+
+    // Normalize JSON structure - support both old and new formats
+    let normalizedData = normalizeFormData(jsonData);
+
+    // Ensure all questions have unique IDs
+    normalizedData = ensureQuestionIds(normalizedData);
+
+    // Auto-generate question labels only (not tags - we use PDF field names)
+    normalizedData = generateQuestionTags(normalizedData, {
+      prefix: '',
+      forceRegenerate: false,
+      generateLabels: true,
+      usePdfFieldNames: false // Don't modify tags, just generate labels
+    });
+
+    setFormData(normalizedData);
+    setCurrentView('builder');
+  }, []);
 
   const handleExportHtml = useCallback((htmlContent) => {
     const blob = new Blob([htmlContent], { type: 'text/html' });
